@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 
 
 class NeuralNetwork:
-    def __init__(self, topology, f_act, loss, fan_in, batch_size=1, eta=0.5, alpha=0):
+    def __init__(self, topology, f_act, loss, fan_in, batch_size=1, eta=0.5, alpha=0, lam = 0):
         self.layers = []
         self.loss = loss
         self.batch_size = batch_size
         self.eta = eta
         self.alpha = alpha
+        self.lam = lam
         self.__init_layers(topology, f_act, loss, fan_in)
         self.l_tr_err = []
         self.l_ts_err = []
@@ -17,7 +18,6 @@ class NeuralNetwork:
         self.l_it = []
 
     def __init_layers(self, topology, f_act, loss, fan_in):
-        x = len(topology)
         for i in range(len(topology)-1):
             if i == len(topology)-2:
                 layer = OutputLayer(topology[i], topology[i + 1], f_act, loss, fan_in, 'Layer ' + str(i))
@@ -38,7 +38,7 @@ class NeuralNetwork:
 
     def update_weights(self):
         for layer in self.layers:
-            layer.update_weights(self.eta, self.alpha, self.batch_size)
+            layer.update_weights(self.eta, self.alpha, self.lam, self.batch_size)
 
     def __acc(self, d, y):
         if np.abs(d - y) < 0.5:
@@ -46,7 +46,7 @@ class NeuralNetwork:
         else:
             return 0
 
-    def train(self, tr, ts, epsilon, epochs):
+    def train(self, tr, vl, ts, epsilon, epochs):
         it = 0
         curr_i = 0
         final_err = 0
@@ -64,13 +64,32 @@ class NeuralNetwork:
                 self.backpropagation(d)
                 curr_i = (curr_i + 1) % tr.size
 
-            # compute error in training set
+            # compute error in trainig set
             for i in range(tr.size):
                 x, d = tr.get_data(i)
                 x = x.reshape(x.shape[0], 1)
                 y = self.feedforward(x.T)
                 tr_err += self.loss.compute_fun(d, y)
                 tr_acc += self.__acc(d, y)
+
+            #TODO: add compute validation error
+            '''
+            compute error in validation set
+            tr_err = 0
+            tr_acc
+            for i in range(vl.size):
+                x, d = vl.get_data(i)
+                x = x.reshape(x.shape[0], 1)
+                y = self.feedforward(x.T)
+                tr_err += self.loss.compute_fun(d, y)
+                tr_acc += self.__acc(d, y)
+            '''
+
+            #TODO: how can we compute ||w||^2 over all the weights in the network?
+            tot_weights = 0
+            for layer in self.layers:
+                tot_weights += np.sum(layer.w)
+
             tr_err = tr_err / tr.size
             final_err = tr_err
             self.l_tr_err.append(tr_err.item())
@@ -78,6 +97,7 @@ class NeuralNetwork:
             self.l_tr_acc.append(tr_acc)
 
             if ts != None:
+
                 #compute error in test set
                 for i in range(ts.size):
                     x, d = ts.get_data(i)
@@ -93,6 +113,7 @@ class NeuralNetwork:
             self.l_it.append(it)
 
             self.update_weights()
+
             print("Error train it {}: {}".format(it, tr_err))
             if tr_err < epsilon:
                 break
