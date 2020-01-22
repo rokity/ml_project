@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 class NeuralNetwork:
-    def __init__(self, topology, f_act, loss, fan_in, batch_size=1, eta=0.5, alpha=0, lam = 0):
+    def __init__(self, topology, f_act, loss, fan_in, batch_size=1, eta=0.5, alpha=0, lam=0):
         self.layers = []
         self.loss = loss
         self.batch_size = batch_size
@@ -64,6 +64,7 @@ class NeuralNetwork:
                 self.backpropagation(d)
                 curr_i = (curr_i + 1) % tr.size
 
+            '''
             # compute error in trainig set
             for i in range(tr.size):
                 x, d = tr.get_data(i)
@@ -71,26 +72,21 @@ class NeuralNetwork:
                 y = self.feedforward(x.T)
                 tr_err += self.loss.compute_fun(d, y)
                 tr_acc += self.__acc(d, y)
+            '''
 
             #TODO: add compute validation error
-            '''
-            compute error in validation set
-            tr_err = 0
-            tr_acc
+
+            #compute error in validation set
             for i in range(vl.size):
                 x, d = vl.get_data(i)
                 x = x.reshape(x.shape[0], 1)
                 y = self.feedforward(x.T)
                 tr_err += self.loss.compute_fun(d, y)
                 tr_acc += self.__acc(d, y)
-            '''
 
-            #TODO: how can we compute ||w||^2 over all the weights in the network?
-            tot_weights = 0
-            for layer in self.layers:
-                tot_weights += np.sum(layer.w)
+            tot_weights = self.sum_square_weights(tr.size)
 
-            tr_err = tr_err / tr.size
+            tr_err = tr_err / tr.size + self.lam*tot_weights
             final_err = tr_err
             self.l_tr_err.append(tr_err.item())
             tr_acc = tr_acc / tr.size
@@ -105,6 +101,7 @@ class NeuralNetwork:
                     y = self.feedforward(x.T)
                     ts_err += self.loss.compute_fun(d, y)
                     ts_acc += self.__acc(d, y)
+
                 ts_err = ts_err / ts.size
                 self.l_ts_err.append(ts_err.item())
                 ts_acc = ts_acc / ts.size
@@ -121,6 +118,12 @@ class NeuralNetwork:
         if it == epochs:
             print("End epochs")
         return final_err
+
+    def sum_square_weights(self, size):
+        sum = 0
+        for layer in self.layers:
+            sum += np.linalg.norm(layer.w)**2
+        return sum / (2*size)
 
     '''
     def show_tr_err(self):

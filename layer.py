@@ -38,7 +38,7 @@ class Layer:
     def update_weights(self, eta, alpha, lam, batch_size):
         self.delta_w = -eta*self.delta_w/batch_size + alpha*self.prev_delta_w
         self.delta_b = -eta*self.delta_b/batch_size + alpha*self.prev_delta_b
-        self.w += self.delta_w
+        self.w += self.delta_w + lam*self.w/batch_size
         self.b += self.delta_b
         self.prev_delta_w = self.delta_w.copy()
         self.prev_delta_b = self.delta_b.copy()
