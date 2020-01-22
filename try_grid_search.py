@@ -9,7 +9,7 @@ import os
 
 class NetworkThread (Thread):
   
-  def __init__(self, eta, momentum,topology,f_act,loss,dim_hid,tr,ts,vl,lam):
+  def __init__(self,eta,momentum,topology,f_act,loss,dim_hid,tr,ts,vl,lam):
     Thread.__init__(self)
     self._eta = eta
     self._momenutm = momentum
@@ -33,7 +33,7 @@ class NetworkThread (Thread):
   
   def printError(self):
       f = open('out/grid_search_error/error.txt', "a")
-      f.write("{}:{}".format(self._eta,self.err))
+      f.write("{}:{} \n".format(self._eta,self.err))     
       f.close()
 
 def file_error_init():
@@ -45,8 +45,8 @@ def file_error_init():
         with open(path, 'w'): pass
 
 
-def main():
-    n_threads=2
+def main():    
+    n_threads=10
     file_error_init()
     path_tr = 'monks/monks-3.train'
     path_ts = 'monks/monks-3.test'
@@ -62,16 +62,16 @@ def main():
         topology = [one_hot, dim_hid, dim_out]
     tr, vl, ts = Parser.parse(path_tr, path_ts, dim_in, dim_out, one_hot, None)
     threads=[]
-    _eta=0.1
+    _eta=float(0.1)
     for i in range(1,n_threads):
         threads.append(NetworkThread(_eta,0.5,topology,f,loss,dim_hid,tr,ts,vl,0.01))
-        _eta+=0.1    
+        _eta=round((_eta+0.1),1)  
     for i in range(1,n_threads):      
         threads[i-1].start()
     for i in range(1,n_threads):      
         threads[i-1].join()
-    for i in range(1,n_threads):      
-        threads[i-1].printGraph()
+    # for i in range(1,n_threads):      
+    #     threads[i-1].printGraph()
     for i in range(1,n_threads):      
         threads[i-1].printError()    
     
