@@ -4,8 +4,8 @@ from neural_network import NeuralNetwork
 import numpy as np
 import time
 
-path_tr = '../problems/monkas/monks-1.train'
-path_ts = '../problems/monkas/monks-1.test'
+path_tr = 'monks/monks-1.train'
+path_ts = 'monks/monks-1.test'
 dim_in = 6
 one_hot = 17
 dim_hid = 4
