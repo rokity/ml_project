@@ -24,14 +24,7 @@ tr, vl, ts = Parser.parse(path_tr, path_ts, dim_in, dim_out, one_hot, None)
 nn = NeuralNetwork(topology, f, loss, dim_hid, tr.size, 0.5, 0.9, 0.01)
 err = nn.train(tr, vl, ts, 0.02, 2000)
 print("Final error: {}\n".format(err))
-<<<<<<< HEAD
-# nn.save_trts_err('./out/3_trts_err.png')
-# nn.save_trts_acc('./out/3_trts_acc.png')
-nn.show_trts_err()
-nn.show_trts_acc()
-=======
 nn.save_trts_err('./out/1_trts_err.png')
 nn.save_trts_acc('./out/1_trts_acc.png')
 #nn.show_trts_err()
 #nn.show_trts_acc()
->>>>>>> f3a7aa2caf1cfe8bbee316ca38a0155976ca6a83
