@@ -122,6 +122,8 @@ class NeuralNetwork:
     def show_trts_err(self):
         plt.plot(self.l_it, self.l_tr_err, 'r')
         plt.plot(self.l_it, self.l_ts_err, 'b')
+        plt.xlabel('epochs')
+        plt.ylabel(self.loss.name)
         plt.show()
 
     def save_trts_err(self, path):
@@ -135,6 +137,8 @@ class NeuralNetwork:
     def show_trts_acc(self):
         plt.plot(self.l_it, self.l_tr_acc, 'r')
         plt.plot(self.l_it, self.l_ts_acc, 'b')
+        plt.xlabel('epochs')
+        plt.ylabel('accuracy')
         plt.show()
 
     def save_trts_acc(self, path):
