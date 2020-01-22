@@ -5,7 +5,13 @@ from dataset import Dataset
 class Parser:
 
     @staticmethod
-    def parse(path, dim_features, dim_out, one_hot=None):
+    def parse(path_tr, path_ts, dim_features, dim_out, one_hot=None, perc_val=None):
+        training_set, validation_set = Parser.parse_file(path_tr, dim_features, dim_out, one_hot, perc_val)
+        test_set, _ = Parser.parse_file(path_ts, dim_features, dim_out, one_hot, None)
+        return training_set, validation_set, test_set
+
+    @staticmethod
+    def parse_file(path, dim_features, dim_out, one_hot, perc_val):
         with open(path, 'r') as file:
             lines = file.readlines()
             if one_hot is not None:
@@ -27,10 +33,15 @@ class Parser:
                     data[i, int(line[6]) + 15] = 1
                 i += 1
             file.close()
-        if one_hot is None:
-            return Dataset(dim_features, dim_out, data)
+        if not (one_hot is None):
+            dim_features = one_hot
+        if not (perc_val is None):
+            n = int(data.shape[0] * perc_val)
+            tr = Dataset(dim_features, dim_out, data[0:n, :])
+            vl = Dataset(dim_features, dim_out, data[n:data.shape[0], :])
+            return tr, vl
         else:
-            return Dataset(one_hot, dim_out, data)
+            return Dataset(dim_features, dim_out, data), None
 
 
 

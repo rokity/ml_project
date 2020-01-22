@@ -32,14 +32,16 @@ class Layer:
     def backpropagation(self, loc_grad, d):
         loc_grad = loc_grad * self.f_act.compute_der(self.v)
         self.delta_w += np.dot(self.x.T, loc_grad)
-        self.delta_b += loc_grad.copy()
+        self.delta_b += loc_grad
         return np.dot(loc_grad, self.w.T)
 
-    def update_weights(self, eta, alpha, batch_size):
-        self.w -= eta*self.delta_w/batch_size + alpha*self.prev_delta_w
-        self.b -= self.delta_b/batch_size + alpha*self.prev_delta_b
-        self.prev_delta_w = self.delta_w.copy()/batch_size
-        self.prev_delta_b = self.delta_b.copy()/batch_size
+    def update_weights(self, eta, alpha, lam, batch_size):
+        self.delta_w = -eta*self.delta_w/batch_size + alpha*self.prev_delta_w
+        self.delta_b = -eta*self.delta_b/batch_size + alpha*self.prev_delta_b
+        self.w += self.delta_w
+        self.b += self.delta_b
+        self.prev_delta_w = self.delta_w.copy()
+        self.prev_delta_b = self.delta_b.copy()
         self.delta_w = np.zeros((self.dim_in, self.dim_out))
         self.delta_b = np.zeros((1, self.dim_out))
 
