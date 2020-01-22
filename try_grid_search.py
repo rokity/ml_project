@@ -9,7 +9,7 @@ import os
 
 class NetworkThread (Thread):
   
-  def __init__(self, eta, momentum,topology,f_act,loss,dim_hid,tr,ts):
+  def __init__(self, eta, momentum,topology,f_act,loss,dim_hid,tr,ts,vl,lam):
     Thread.__init__(self)
     self._eta = eta
     self._momenutm = momentum
@@ -19,10 +19,12 @@ class NetworkThread (Thread):
     self._dim_hid=dim_hid
     self._tr=tr
     self._ts=ts
+    self._vl=vl
+    self._lambda=lam
     
   def run(self):
-    self.nn = NeuralNetwork(self._topology, self._f_act, self._loss, self._dim_hid, self._tr.size, self._eta, self._momenutm)
-    self.err = self.nn.train(self._tr, self._ts, 0.02, 2000)    
+    self.nn = NeuralNetwork(self._topology, self._f_act, self._loss, self._dim_hid, self._tr.size, self._eta, self._momenutm,self._lambda)
+    self.err = self.nn.train(self._tr,self._tr, self._ts, 0.02, 2000)    
     print("fatto")
 
   def printGraph(self):
@@ -44,7 +46,7 @@ def file_error_init():
 
 
 def main():
-    n_threads=3
+    n_threads=2
     file_error_init()
     path_tr = 'monks/monks-3.train'
     path_ts = 'monks/monks-3.test'
@@ -58,21 +60,20 @@ def main():
         topology = [dim_in, dim_hid, dim_out]
     else:
         topology = [one_hot, dim_hid, dim_out]
-    tr = Parser.parse(path_tr, dim_in, dim_out, one_hot)
-    ts = Parser.parse(path_ts, dim_in, dim_out, one_hot)
+    tr, vl, ts = Parser.parse(path_tr, path_ts, dim_in, dim_out, one_hot, None)
     threads=[]
-    # _eta=0.1
-    # for i in range(1,n_threads):
-    #     threads.append(NetworkThread(_eta,0.5,topology,f,loss,dim_hid,tr,ts))
-    #     _eta+=0.1    
-    # for i in range(1,n_threads):      
-    #     threads[i-1].start()
-    # for i in range(1,n_threads):      
-    #     threads[i-1].join()
-    # for i in range(1,n_threads):      
-    #     threads[i-1].printGraph()
-    # for i in range(1,n_threads):      
-    #     threads[i-1].printError()    
+    _eta=0.1
+    for i in range(1,n_threads):
+        threads.append(NetworkThread(_eta,0.5,topology,f,loss,dim_hid,tr,ts,vl,0.01))
+        _eta+=0.1    
+    for i in range(1,n_threads):      
+        threads[i-1].start()
+    for i in range(1,n_threads):      
+        threads[i-1].join()
+    for i in range(1,n_threads):      
+        threads[i-1].printGraph()
+    for i in range(1,n_threads):      
+        threads[i-1].printError()    
     
 
 
