@@ -7,7 +7,7 @@ import time
 #initialize parameters
 
 path_tr = 'monks/monks-2.train'
-path_ts = 'monks/monks-2    .test'
+path_ts = 'monks/monks-2.test'
 dim_in = 6
 one_hot = 17
 dim_hid = 4
