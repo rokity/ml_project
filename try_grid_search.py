@@ -4,10 +4,11 @@ from neural_network import NeuralNetwork
 import numpy as np
 import time
 from threading import Thread
+import os
 
 
 class NetworkThread (Thread):
-  nn=None
+  
   def __init__(self, eta, momentum,topology,f_act,loss,dim_hid,tr,ts):
     Thread.__init__(self)
     self._eta = eta
@@ -21,15 +22,30 @@ class NetworkThread (Thread):
     
   def run(self):
     self.nn = NeuralNetwork(self._topology, self._f_act, self._loss, self._dim_hid, self._tr.size, self._eta, self._momenutm)
-    err = self.nn.train(self._tr, self._ts, 0.02, 2000)    
+    self.err = self.nn.train(self._tr, self._ts, 0.02, 2000)    
     print("fatto")
 
-  def print(self):
-    self.nn.save_trts_err('./out/grid_search/3_trts_err{}.png'.format(self._eta))
-    self.nn.save_trts_acc('./out/grid_search/3_trts_acc{}.png'.format(self._eta))
+  def printGraph(self):
+    self.nn.save_trts_err('./out/grid_search_graph/3_trts_err{}.png'.format(self._eta))
+    self.nn.save_trts_acc('./out/grid_search_graph/3_trts_acc{}.png'.format(self._eta))
+  
+  def printError(self):
+      f = open('out/grid_search_error/error.txt', "a")
+      f.write("{}:{}".format(self._eta,self.err))
+      f.close()
+
+def file_error_init():
+    path='out/grid_search_error/error.txt'
+    if (os.path.exists(path)):
+        os.remove(path)
+        with open(path, 'w'): pass
+    else:
+        with open(path, 'w'): pass
 
 
 def main():
+    n_threads=3
+    file_error_init()
     path_tr = 'monks/monks-3.train'
     path_ts = 'monks/monks-3.test'
     dim_in = 6
@@ -45,16 +61,18 @@ def main():
     tr = Parser.parse(path_tr, dim_in, dim_out, one_hot)
     ts = Parser.parse(path_ts, dim_in, dim_out, one_hot)
     threads=[]
-    _eta=0.1
-    for i in range(1,3):
-        threads.append(NetworkThread(_eta,0.5,topology,f,loss,dim_hid,tr,ts))
-        _eta+=0.1    
-    for i in range(1,3):      
-        threads[i-1].start()
-    for i in range(1,3):      
-        threads[i-1].join()
-    for i in range(1,3):      
-        threads[i-1].print()
+    # _eta=0.1
+    # for i in range(1,n_threads):
+    #     threads.append(NetworkThread(_eta,0.5,topology,f,loss,dim_hid,tr,ts))
+    #     _eta+=0.1    
+    # for i in range(1,n_threads):      
+    #     threads[i-1].start()
+    # for i in range(1,n_threads):      
+    #     threads[i-1].join()
+    # for i in range(1,n_threads):      
+    #     threads[i-1].printGraph()
+    # for i in range(1,n_threads):      
+    #     threads[i-1].printError()    
     
 
 
