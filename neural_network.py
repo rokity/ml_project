@@ -145,28 +145,12 @@ class NeuralNetwork:
         plt.ylabel(self.loss.name)
         plt.show()
 
-    def save_trts_err(self, path):
-        plt.figure()
+    def show_trvl_err(self):
         plt.plot(self.l_it, self.l_tr_err, 'r')
-        plt.plot(self.l_it, self.l_ts_err, 'b')
+        plt.plot(self.l_it, self.l_vl_err, 'g')
         plt.xlabel('epochs')
         plt.ylabel(self.loss.name)
-        plt.savefig(path)
-
-    def show_trts_acc(self):
-        plt.plot(self.l_it, self.l_tr_acc, 'r')
-        plt.plot(self.l_it, self.l_ts_acc, 'b')
-        plt.xlabel('epochs')
-        plt.ylabel('accuracy')
         plt.show()
-
-    def save_trts_acc(self, path):
-        plt.figure()
-        plt.plot(self.l_it, self.l_tr_acc, 'r')
-        plt.plot(self.l_it, self.l_ts_acc, 'b')
-        plt.xlabel('epochs')
-        plt.ylabel('accuracy')
-        plt.savefig(path)
 
     def show_all_err(self):
         plt.plot(self.l_it, self.l_tr_err, 'r')
@@ -176,6 +160,20 @@ class NeuralNetwork:
         plt.ylabel(self.loss.name)
         plt.show()
 
+    def show_trts_acc(self):
+        plt.plot(self.l_it, self.l_tr_acc, 'r')
+        plt.plot(self.l_it, self.l_ts_acc, 'b')
+        plt.xlabel('epochs')
+        plt.ylabel('accuracy')
+        plt.show()
+
+    def show_trvl_acc(self):
+        plt.plot(self.l_it, self.l_tr_acc, 'r')
+        plt.plot(self.l_it, self.l_vl_acc, 'g')
+        plt.xlabel('epochs')
+        plt.ylabel('accuracy')
+        plt.show()
+
     def show_all_acc(self):
         plt.plot(self.l_it, self.l_tr_acc, 'r')
         plt.plot(self.l_it, self.l_ts_acc, 'b')
@@ -183,3 +181,23 @@ class NeuralNetwork:
         plt.xlabel('epochs')
         plt.ylabel('accuracy')
         plt.show()
+
+
+    def save_trts_err(self, path):
+        plt.figure()
+        plt.plot(self.l_it, self.l_tr_err, 'r')
+        plt.plot(self.l_it, self.l_ts_err, 'b')
+        plt.xlabel('epochs')
+        plt.ylabel(self.loss.name)
+        plt.savefig(path)
+
+
+    def save_trts_acc(self, path):
+        plt.figure()
+        plt.plot(self.l_it, self.l_tr_acc, 'r')
+        plt.plot(self.l_it, self.l_ts_acc, 'b')
+        plt.xlabel('epochs')
+        plt.ylabel('accuracy')
+        plt.savefig(path)
+
+

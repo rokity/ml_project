@@ -43,6 +43,7 @@ class Monks_parser(Parser):
                     data[i, int(line[6]) + 15] = 1
                 i += 1
             file.close()
+        np.random.shuffle(data)
         if not (one_hot is None):
             dim_features = one_hot
         if not (perc_val is None):
