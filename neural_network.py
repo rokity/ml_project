@@ -5,9 +5,10 @@ import sys
 
 
 class NeuralNetwork:
-    def __init__(self, topology, f_act, loss, fan_in, batch_size=1, eta=0.5, alpha=0, lam=0):
+    def __init__(self, topology, f_act, loss, acc, fan_in, batch_size=1, eta=0.5, alpha=0, lam=0):
         self.layers = []
         self.loss = loss
+        self.acc = acc
         self.batch_size = batch_size
         self.eta = eta
         self.alpha = alpha
@@ -44,7 +45,7 @@ class NeuralNetwork:
             x = x.reshape(x.shape[0], 1)
             y = self.feedforward(x.T)
             err += self.loss.compute_fun(d, y)
-            acc += self.__acc(d, y)
+            acc += self.acc.compute_fun(d, y)
         return err.item() / dataset.size, acc / dataset.size
 
     def backpropagation(self, d):
@@ -55,12 +56,6 @@ class NeuralNetwork:
     def update_weights(self):
         for layer in self.layers:
             layer.update_weights(self.eta, self.alpha, self.lam, self.batch_size)
-
-    def __acc(self, d, y):
-        if np.abs(d - y) < 0.5:
-            return 1
-        else:
-            return 0
 
     def train(self, tr, vl, ts, epsilon, epochs):
         it = 0

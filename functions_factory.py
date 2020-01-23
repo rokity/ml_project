@@ -13,6 +13,10 @@ class FunctionsFactory:
             return Function(name, lms, lms_der)
         elif name == 'eucledian':
             return Function(name, euclidean, euclidean_der)
+        elif name == 'accuracy':
+            return Function(name, accuracy, None)
+        elif name == 'accuracy_multiple':
+            return Function(name, accuracy_multiple, None)
 
 
 class Function:
@@ -52,3 +56,17 @@ def euclidean(d, y):
 
 def euclidean_der(d, y):
     return -(d - y) / np.sqrt(np.dot(d - y, d - y))
+
+
+def accuracy(d, y):
+    if np.abs(d - y) < 0.5:
+        return 1
+    else:
+        return 0
+
+
+def accuracy_multiple(d, y):
+    if np.argmax(d) == np.argmax(y):
+        return 1
+    else:
+        return 0
