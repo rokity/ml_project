@@ -36,7 +36,7 @@ class Parser:
         if not (one_hot is None):
             dim_features = one_hot
         if not (perc_val is None):
-            n = int(data.shape[0] * perc_val)
+            n = data.shape[0] - int(data.shape[0] * perc_val)
             tr = Dataset(dim_features, dim_out, data[0:n, :])
             vl = Dataset(dim_features, dim_out, data[n:data.shape[0], :])
             return tr, vl

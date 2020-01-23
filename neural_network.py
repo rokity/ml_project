@@ -1,5 +1,7 @@
 from layer import *
+from dataset import Dataset
 import matplotlib.pyplot as plt
+import sys
 
 
 class NeuralNetwork:
@@ -12,24 +14,38 @@ class NeuralNetwork:
         self.lam = lam
         self.__init_layers(topology, f_act, loss, fan_in)
         self.l_tr_err = []
+        self.l_vl_err = []
         self.l_ts_err = []
         self.l_tr_acc = []
+        self.l_vl_acc = []
         self.l_ts_acc = []
+
         self.l_it = []
 
     def __init_layers(self, topology, f_act, loss, fan_in):
-        for i in range(len(topology)-1):
-            if i == len(topology)-2:
+        for i in range(len(topology) - 1):
+            if i == len(topology) - 2:
                 layer = OutputLayer(topology[i], topology[i + 1], f_act, loss, fan_in, 'Layer ' + str(i))
             else:
-                layer = Layer(topology[i], topology[i+1], f_act, loss, fan_in, 'Layer ' + str(i))
+                layer = Layer(topology[i], topology[i + 1], f_act, loss, fan_in, 'Layer ' + str(i))
             layer.print_info()
             self.layers.append(layer)
 
-    def feedforward(self, x):
+    def feedforward(self, x: np.ndarray):
         for layer in self.layers:
             x = layer.feedforward(x)
         return x
+
+    def feedforward_dataset(self, dataset: Dataset):
+        err = 0
+        acc = 0
+        for i in range(dataset.size):
+            x, d = dataset.get_data(i)
+            x = x.reshape(x.shape[0], 1)
+            y = self.feedforward(x.T)
+            err += self.loss.compute_fun(d, y)
+            acc += self.__acc(d, y)
+        return err.item() / dataset.size, acc / dataset.size
 
     def backpropagation(self, d):
         loc_grad = None
@@ -49,12 +65,10 @@ class NeuralNetwork:
     def train(self, tr, vl, ts, epsilon, epochs):
         it = 0
         curr_i = 0
-        final_err = 0
+        training_err = 0
+        validation_err = 0
+        min_tr_err = sys.float_info.max
         while it < epochs:
-            tr_err = 0
-            ts_err = 0
-            tr_acc = 0
-            ts_acc = 0
 
             # train
             for _ in range(self.batch_size):
@@ -64,66 +78,47 @@ class NeuralNetwork:
                 self.backpropagation(d)
                 curr_i = (curr_i + 1) % tr.size
 
-            '''
-            # compute error in trainig set
-            for i in range(tr.size):
-                x, d = tr.get_data(i)
-                x = x.reshape(x.shape[0], 1)
-                y = self.feedforward(x.T)
-                tr_err += self.loss.compute_fun(d, y)
-                tr_acc += self.__acc(d, y)
-            '''
-
-            #TODO: add compute validation error
-
-            #compute error in validation set
-            for i in range(vl.size):
-                x, d = vl.get_data(i)
-                x = x.reshape(x.shape[0], 1)
-                y = self.feedforward(x.T)
-                tr_err += self.loss.compute_fun(d, y)
-                tr_acc += self.__acc(d, y)
-
+            # compute error in training set
+            err, acc = self.feedforward_dataset(tr)
+            err = err
+            self.l_tr_err.append(err)
+            self.l_tr_acc.append(acc)
             tot_weights = self.sum_square_weights(tr.size)
 
-            tr_err = tr_err / tr.size + self.lam*tot_weights
-            final_err = tr_err
-            self.l_tr_err.append(tr_err.item())
-            tr_acc = tr_acc / tr.size
-            self.l_tr_acc.append(tr_acc)
+            training_err = err + self.lam * tot_weights
+            min_tr_err = min(min_tr_err, training_err)
 
-            if ts != None:
+            # compute error in validation set
+            err, acc = self.feedforward_dataset(vl)
+            self.l_vl_err.append(err)
+            self.l_vl_acc.append(acc)
 
-                #compute error in test set
-                for i in range(ts.size):
-                    x, d = ts.get_data(i)
-                    x = x.reshape(x.shape[0], 1)
-                    y = self.feedforward(x.T)
-                    ts_err += self.loss.compute_fun(d, y)
-                    ts_acc += self.__acc(d, y)
+            validation_err = err
 
-                ts_err = ts_err / ts.size
-                self.l_ts_err.append(ts_err.item())
-                ts_acc = ts_acc / ts.size
-                self.l_ts_acc.append(ts_acc)
+            # compute error in test set
+            if not (ts is None):
+                err, acc = self.feedforward_dataset(ts)
+                self.l_ts_err.append(err)
+                self.l_ts_acc.append(acc)
 
             self.l_it.append(it)
 
             self.update_weights()
 
-            print("Error train it {}: {}".format(it, tr_err))
-            if tr_err < epsilon:
+            print("Error train it {}: {}".format(it, training_err))
+
+            if training_err - min_tr_err > 0:
                 break
             it += 1
         if it == epochs:
             print("End epochs")
-        return final_err
+        return validation_err
 
     def sum_square_weights(self, size):
         sum = 0
         for layer in self.layers:
-            sum += np.linalg.norm(layer.w)**2
-        return sum / (2*size)
+            sum += np.linalg.norm(layer.w) ** 2
+        return sum / (2 * size)
 
     '''
     def show_tr_err(self):
@@ -173,5 +168,18 @@ class NeuralNetwork:
         plt.ylabel('accuracy')
         plt.savefig(path)
 
+    def show_all_err(self):
+        plt.plot(self.l_it, self.l_tr_err, 'r')
+        plt.plot(self.l_it, self.l_ts_err, 'b')
+        plt.plot(self.l_it, self.l_vl_err, 'g')
+        plt.xlabel('epochs')
+        plt.ylabel(self.loss.name)
+        plt.show()
 
-
+    def show_all_acc(self):
+        plt.plot(self.l_it, self.l_tr_acc, 'r')
+        plt.plot(self.l_it, self.l_ts_acc, 'b')
+        plt.plot(self.l_it, self.l_vl_acc, 'g')
+        plt.xlabel('epochs')
+        plt.ylabel('accuracy')
+        plt.show()
