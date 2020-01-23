@@ -1,4 +1,4 @@
-from parser import Parser
+from parser import *
 from functions_factory import FunctionsFactory
 from neural_network import NeuralNetwork
 
@@ -14,7 +14,10 @@ if one_hot is None:
     topology = [dim_in, dim_hid, dim_out]
 else:
     topology = [one_hot, dim_hid, dim_out]
-tr, vl, ts = Parser.parse(path_tr, path_ts, dim_in, dim_out, one_hot, 0.2)
+
+parser = Monks_parser(path_tr, path_ts)
+tr, vl, ts = parser.parse(dim_in, dim_out, one_hot, 0.3)
+
 tr.normalize_out()
 vl.normalize_out()
 ts.normalize_out()
