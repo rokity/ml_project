@@ -46,7 +46,7 @@ def file_error_init():
 
 
 def main():    
-    n_threads=10
+    n_threads=3
     file_error_init()
     path_tr = 'monks/monks-3.train'
     path_ts = 'monks/monks-3.test'
@@ -70,8 +70,8 @@ def main():
         threads[i-1].start()
     for i in range(1,n_threads):      
         threads[i-1].join()
-    # for i in range(1,n_threads):      
-    #     threads[i-1].printGraph()
+    for i in range(1,n_threads):      
+        threads[i-1].printGraph()
     for i in range(1,n_threads):      
         threads[i-1].printError()    
     
