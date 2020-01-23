@@ -2,8 +2,7 @@ from functions_factory import FunctionsFactory
 from neural_network import NeuralNetwork
 from parser import *
 
-#initialize parameters
-
+# initialize parameters
 path_tr = 'monks/monks-3.train'
 path_ts = 'monks/monks-3.test'
 dim_in = 6

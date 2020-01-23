@@ -63,6 +63,10 @@ class NeuralNetwork:
         training_err = 0
         validation_err = 0
         min_tr_err = sys.float_info.max
+        min_vl_err = sys.float_info.max
+
+        k = 300
+
         while it < epochs:
 
             # train
@@ -81,6 +85,7 @@ class NeuralNetwork:
             tot_weights = self.sum_square_weights(tr.size)
 
             training_err = err + self.lam * tot_weights
+
             min_tr_err = min(min_tr_err, training_err)
 
             # compute error in validation set
@@ -89,6 +94,8 @@ class NeuralNetwork:
             self.l_vl_acc.append(acc)
 
             validation_err = err
+
+            min_vl_err = min(min_vl_err, validation_err)
 
             # compute error in test set
             if not (ts is None):
@@ -100,9 +107,11 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            print("Error train it {}: {}".format(it, training_err))
+            print("Error it {}: {},\t {},\t {}".format(it, training_err, validation_err, k))
 
-            if training_err - min_tr_err > 0:
+            if validation_err - min_vl_err > 0:
+                k -= 1
+            if k == 0:
                 break
             it += 1
         if it == epochs:
