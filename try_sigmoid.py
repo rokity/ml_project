@@ -5,8 +5,8 @@ from neural_network import NeuralNetwork
 
 #initialize parameters
 
-path_tr = 'monks/monks-3.train'
-path_ts = 'monks/monks-3.test'
+path_tr = 'monks/monks-1.train'
+path_ts = 'monks/monks-1.test'
 dim_in = 6
 one_hot = 17
 dim_hid = 4

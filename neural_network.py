@@ -20,7 +20,6 @@ class NeuralNetwork:
         self.l_tr_acc = []
         self.l_vl_acc = []
         self.l_ts_acc = []
-
         self.l_it = []
 
     def __init_layers(self, topology, f_act, loss, fan_in):
@@ -29,8 +28,10 @@ class NeuralNetwork:
                 layer = OutputLayer(topology[i], topology[i + 1], f_act, loss, fan_in, 'Layer ' + str(i))
             else:
                 layer = Layer(topology[i], topology[i + 1], f_act, loss, fan_in, 'Layer ' + str(i))
-            layer.print_info()
             self.layers.append(layer)
+
+    def set_out_actf(self, act_fun):
+        self.layers[-1].f_act = act_fun
 
     def feedforward(self, x: np.ndarray):
         for layer in self.layers:
@@ -65,7 +66,7 @@ class NeuralNetwork:
         min_tr_err = sys.float_info.max
         min_vl_err = sys.float_info.max
 
-        k = 300
+        k = 150
 
         while it < epochs:
 
@@ -107,7 +108,7 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            print("Error it {}: {},\t {},\t {}".format(it, training_err, validation_err, k))
+            print("Error it {}: {},\t {},\t {},\t {}".format(it, training_err, training_err - self.lam * tot_weights,validation_err, k))
 
             if validation_err - min_vl_err > 0:
                 k -= 1
@@ -123,24 +124,6 @@ class NeuralNetwork:
         for layer in self.layers:
             sum += np.linalg.norm(layer.w) ** 2
         return sum / (2 * size)
-
-    '''
-    def show_tr_err(self):
-        plt.plot(self.l_it, self.l_tr_err)
-        plt.show()
-
-    def save_tr_err(self):
-        plt.plot(self.l_it, self.l_tr_err)
-        plt.xlabel('epochs')
-        plt.ylabel(self.loss.name)
-        plt.savefig('./out/tr_err.png')
-
-    def save_ts_err(self):
-        plt.plot(self.l_it, self.l_ts_err)
-        plt.xlabel('epochs')
-        plt.ylabel(self.loss.name)
-        plt.savefig('./out/ts_err.png')
-    '''
 
     def show_trts_err(self):
         plt.plot(self.l_it, self.l_tr_err, 'r')

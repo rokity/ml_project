@@ -3,9 +3,6 @@ from dataset import Dataset
 
 
 class Parser:
-    def __init__(self, path_tr, path_ts):
-        self.path_tr = path_tr
-        self.path_ts = path_ts
 
     def parse(self, dim_features, dim_out, one_hot=None, perc_val=None):
         raise NotImplementedError
@@ -15,6 +12,9 @@ class Parser:
 
 
 class Monks_parser(Parser):
+    def __init__(self, path_tr, path_ts):
+        self.path_tr = path_tr
+        self.path_ts = path_ts
 
     def parse(self, dim_features, dim_out, one_hot=None, perc_val=None):
         training_set, validation_set = self.__parse_file(self.path_tr, dim_features, dim_out, one_hot, perc_val)
