@@ -23,7 +23,7 @@ class NeuralNetwork:
                 layer = OutputLayer(topology[i], topology[i + 1], f_act, loss, fan_in, 'Layer ' + str(i))
             else:
                 layer = Layer(topology[i], topology[i+1], f_act, loss, fan_in, 'Layer ' + str(i))
-            layer.print_info()
+            # layer.print_info()
             self.layers.append(layer)
 
     def feedforward(self, x):
@@ -111,7 +111,7 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            print("Error train it {}: {}".format(it, tr_err))
+            # print("Error train it {}: {}".format(it, tr_err))
             if tr_err < epsilon:
                 break
             it += 1
