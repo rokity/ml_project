@@ -96,6 +96,9 @@ class NeuralNetwork:
 
             validation_err = err
 
+            gl = 100*((validation_err / min_vl_err) - 1)
+            #print("GL({}): {}".format(it, gl))
+
             min_vl_err = min(min_vl_err, validation_err)
 
             # compute error in test set
@@ -108,11 +111,15 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            print("Error it {}: {},\t {},\t {},\t {}".format(it, training_err, training_err - self.lam * tot_weights,validation_err, k))
+            print("Error it {}: {},\t {},\t {}".format(it, training_err, validation_err, gl))
 
+            '''
             if validation_err - min_vl_err > 0:
                 k -= 1
             if k == 0:
+                break
+            '''
+            if abs(gl) > 1 and training_err - min_tr_err > 0:
                 break
             it += 1
         if it == epochs:
