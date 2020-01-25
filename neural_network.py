@@ -113,7 +113,7 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            # print("Error it {}: {},\t {},\t {}".format(it, training_err, validation_err, gl))
+            print("Error it {}: {},\t {},\t {}".format(it, training_err, validation_err, gl))
 
             '''
             if validation_err - min_vl_err > 0:
@@ -121,7 +121,7 @@ class NeuralNetwork:
             if k == 0:
                 break
             '''
-            if abs(gl) > 1 and training_err - min_tr_err > 0:
+            if abs(gl) > 1 and training_err - min_tr_err > 0 and it > 1000:
                 break
             it += 1
         print("Exit at epoch: {}".format(it))

@@ -14,10 +14,10 @@ f = FunctionsFactory.build('sigmoid')
 out_f = FunctionsFactory.build('linear')
 
 # loss function
-loss = FunctionsFactory.build('eucledian')
+loss = FunctionsFactory.build('mse')
 
 # accuracy function
-acc = FunctionsFactory.build('accuracy_multiple')
+acc = FunctionsFactory.build('mee')
 
 topology = [dim_in, dim_hid, dim_hid2, dim_out]
 
