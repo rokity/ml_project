@@ -121,7 +121,7 @@ class NeuralNetwork:
             if k == 0:
                 break
             '''
-            if abs(gl) > 1 and training_err - min_tr_err > 0 and it > 1000:
+            if abs(gl) > 1 and training_err - min_tr_err > 0:
                 break
             it += 1
         print("Exit at epoch: {}".format(it))
