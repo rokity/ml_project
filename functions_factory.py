@@ -65,11 +65,11 @@ def lms_der(d, y):
 
 
 def euclidean(d, y):
-    return np.sqrt(np.dot(d - y, d - y))
+    return np.linalg.norm(d - y)
 
 
 def euclidean_der(d, y):
-    return -(d - y) / np.sqrt(np.dot(d - y, d - y))
+    return -(d - y) / np.linalg.norm(d - y)
 
 
 # ----------------- Accuracy functions -----------------

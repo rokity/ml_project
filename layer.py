@@ -11,10 +11,11 @@ class Layer:
         self.__init_layer(fan_in)
 
     def __init_layer(self, fan_in):
-        max = 0.7 * 2 / fan_in
+        # max = 0.7 * 2 / fan_in
+        max = 1 / np.sqrt(fan_in)
         min = - max
         self.w = (np.random.randn(self.dim_in, self.dim_out) * (max - min)) + min
-        self.b = np.random.randn(1, self.dim_out)
+        self.b = np.zeros((1, self.dim_out))
         self.delta_w = np.zeros((self.dim_in, self.dim_out))
         self.prev_delta_w = np.zeros((self.dim_in, self.dim_out))
         self.delta_b = np.zeros((1, self.dim_out))
@@ -59,6 +60,6 @@ class Layer:
 class OutputLayer(Layer):
 
     def backpropagation(self, loc_grad, d):
-        loc_grad = self.loss.compute_der(d, self.y) * self.f_act.compute_der(self.v)
+        loc_grad = self.loss.compute_der(d, self.y).dot(self.f_act.compute_der(self.v))
         self.delta_w += np.dot(self.x.T, loc_grad)
         return np.dot(loc_grad, self.w.T)

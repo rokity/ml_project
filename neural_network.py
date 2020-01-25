@@ -74,8 +74,9 @@ class NeuralNetwork:
             for _ in range(self.batch_size):
                 x, d = tr.get_data(curr_i)
                 x = x.reshape(x.shape[0], 1)
+                d = d.reshape(d.shape[0], 1)
                 y = self.feedforward(x.T)
-                self.backpropagation(d)
+                self.backpropagation(d.T)
                 curr_i = (curr_i + 1) % tr.size
 
             # compute error in training set
@@ -96,6 +97,7 @@ class NeuralNetwork:
 
             validation_err = err
 
+            # generalization loss
             gl = 100*((validation_err / min_vl_err) - 1)
             #print("GL({}): {}".format(it, gl))
 

@@ -6,18 +6,31 @@ from parser import *
 path_tr = 'cup/ML-CUP19-TR.csv'
 path_ts = 'cup/ML-CUP19-TS.csv'
 dim_in = 20
-dim_hid = 4
+dim_hid = 15
+dim_hid2 = 10
 dim_out = 2
+# activation functions
 f = FunctionsFactory.build('sigmoid')
-loss = FunctionsFactory.build('lms')
-acc = FunctionsFactory.build('accuracy')
+out_f = FunctionsFactory.build('linear')
 
-topology = [dim_in, dim_hid, dim_out]
+# loss function
+loss = FunctionsFactory.build('eucledian')
+
+# accuracy function
+acc = FunctionsFactory.build('accuracy_multiple')
+
+topology = [dim_in, dim_hid, dim_hid2, dim_out]
 
 parser = Cup_parser(path_tr)
 tr, vl, ts = parser.parse(dim_in, dim_out)
-'''
-nn = NeuralNetwork(topology, f, loss, acc, dim_hid, tr.size, 0.5, 0.8, 0.01)
+
+print("tr size: {}".format(tr.size))
+print("vl size: {}".format(vl.size))
+print("ts size: {}".format(ts.size))
+
+nn = NeuralNetwork(topology, f, loss, acc, dim_hid+dim_hid2, tr.size, 0.1, 0.3, 0.01)
+nn.set_out_actf(out_f)
+
 err = nn.train(tr, vl, ts, 1e-2, 2000)
 
 print("Validation error: {}\n".format(err))
@@ -25,4 +38,3 @@ print("Validation error: {}\n".format(err))
 #nn.save_trts_acc('./out/1_all_acc.png')
 nn.show_all_err()
 nn.show_all_acc()
-'''
