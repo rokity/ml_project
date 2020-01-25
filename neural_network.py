@@ -113,7 +113,7 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            print("Error it {}: {},\t {},\t {}".format(it, training_err, validation_err, gl))
+            # print("Error it {}: {},\t {},\t {}".format(it, training_err, validation_err, gl))
 
             '''
             if validation_err - min_vl_err > 0:
@@ -124,8 +124,7 @@ class NeuralNetwork:
             if abs(gl) > 1 and training_err - min_tr_err > 0:
                 break
             it += 1
-        if it == epochs:
-            print("End epochs")
+        print("Exit at epoch: {}".format(it))
         return validation_err
 
     def sum_square_weights(self, size):
@@ -150,8 +149,8 @@ class NeuralNetwork:
 
     def show_all_err(self):
         plt.plot(self.l_it, self.l_tr_err, 'r')
-        plt.plot(self.l_it, self.l_ts_err, 'b')
-        plt.plot(self.l_it, self.l_vl_err, 'g')
+        plt.plot(self.l_it, self.l_ts_err, 'b-.')
+        plt.plot(self.l_it, self.l_vl_err, 'g:')
         plt.xlabel('epochs')
         plt.ylabel(self.loss.name)
         plt.show()
@@ -172,8 +171,8 @@ class NeuralNetwork:
 
     def show_all_acc(self):
         plt.plot(self.l_it, self.l_tr_acc, 'r')
-        plt.plot(self.l_it, self.l_ts_acc, 'b')
-        plt.plot(self.l_it, self.l_vl_acc, 'g')
+        plt.plot(self.l_it, self.l_ts_acc, 'b-.')
+        plt.plot(self.l_it, self.l_vl_acc, 'g:')
         plt.xlabel('epochs')
         plt.ylabel('accuracy')
         plt.show()
