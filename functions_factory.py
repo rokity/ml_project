@@ -13,8 +13,10 @@ class FunctionsFactory:
             return Function(name, linear, linear_der)
         elif name == 'lms':
             return Function(name, lms, lms_der)
-        elif name == 'eucledian':
-            return Function(name, euclidean, euclidean_der)
+        elif name == 'mee':
+            return Function(name, mee, mee_der)
+        elif name == 'mse':
+            return Function(name, mse, mse_der)
         elif name == 'accuracy':
             return Function(name, accuracy, None)
         elif name == 'accuracy_multiple':
@@ -57,32 +59,34 @@ def linear_der(x):
 # ----------------- Loss functions -----------------
 
 def lms(d, y):
-    return np.dot(d - y, d - y)
+    return (d - y)**2
 
 
 def lms_der(d, y):
     return -2*(d - y)
 
 
-def euclidean(d, y):
-    return np.sqrt(np.dot(d - y, d - y))
+def mse(d, y):
+    diff = d - y
+    return np.dot(diff, diff.T)
 
 
-def euclidean_der(d, y):
-    return -(d - y) / np.sqrt(np.dot(d - y, d - y))
+def mse_der(d, y):
+    return -2*(d - y)
+
+
+def mee(d, y):
+    return np.linalg.norm(d - y)
+
+
+def mee_der(d, y):
+    return -(d - y) / np.linalg.norm(d - y)
 
 
 # ----------------- Accuracy functions -----------------
 
 def accuracy(d, y):
     if np.abs(d - y) < 0.5:
-        return 1
-    else:
-        return 0
-
-
-def accuracy_multiple(d, y):
-    if np.argmax(d) == np.argmax(y):
         return 1
     else:
         return 0

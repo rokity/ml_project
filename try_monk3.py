@@ -11,6 +11,7 @@ dim_hid = 4
 dim_out = 1
 f = FunctionsFactory.build('sigmoid')
 loss = FunctionsFactory.build('lms')
+
 acc = FunctionsFactory.build('accuracy')
 
 if one_hot is None:
