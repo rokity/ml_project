@@ -1,12 +1,11 @@
-from parser import *
 from functions_factory import FunctionsFactory
 from neural_network import NeuralNetwork
-
+from parser import *
 
 #initialize parameters
 
-path_tr = 'monks/monks-1.train'
-path_ts = 'monks/monks-1.test'
+path_tr = 'monks/monks-2.train'
+path_ts = 'monks/monks-2.test'
 dim_in = 6
 one_hot = 17
 dim_hid = 4
@@ -26,5 +25,7 @@ tr, vl, ts = parser.parse(dim_in, dim_out, one_hot, 0.3)
 nn = NeuralNetwork(topology, f, loss, acc, dim_hid, tr.size, 0.5, 0.8, 0.01)
 err = nn.train(tr, vl, ts, 1e-2, 2000)
 print("Validation error: {}\n".format(err))
+#nn.save_trts_err('./out/2_all_err.png')
+#nn.save_trts_acc('./out/2_all_acc.png')
 nn.show_all_err()
 nn.show_all_acc()
