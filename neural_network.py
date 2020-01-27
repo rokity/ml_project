@@ -125,6 +125,10 @@ class NeuralNetwork:
                 break
             it += 1
         print("Exit at epoch: {}".format(it))
+        if self.acc.name == 'accuracy':
+            print("% accuracy training set: {}".format(self.l_tr_acc[-1]*100))
+            print("% accuracy validation set: {}".format(self.l_vl_acc[-1]*100))
+            print("% accuracy test set: {}".format(self.l_ts_acc[-1]*100))
         return validation_err
 
     def sum_square_weights(self, size):
@@ -133,66 +137,109 @@ class NeuralNetwork:
             sum += np.linalg.norm(layer.w) ** 2
         return sum / (2 * size)
 
+    def plot_tr_err(self):
+        plt.plot(self.l_it, self.l_tr_err, 'r', label='TR error')
+
+    def plot_vl_err(self):
+        plt.plot(self.l_it, self.l_vl_err, 'g:', label='VL error')
+
+    def plot_ts_err(self):
+        plt.plot(self.l_it, self.l_ts_err, 'b-.', label='TS error')
+
+    def plot_tr_acc(self):
+        plt.plot(self.l_it, self.l_tr_acc, 'r', label='TR accuracy')
+
+    def plot_vl_acc(self):
+        plt.plot(self.l_it, self.l_vl_acc, 'g:', label='VL accuracy')
+
+    def plot_ts_acc(self):
+        plt.plot(self.l_it, self.l_ts_acc, 'b-.', label='TS accuracy')
+
     def show_trts_err(self):
-        plt.plot(self.l_it, self.l_tr_err, 'r')
-        plt.plot(self.l_it, self.l_ts_err, 'b')
+        self.plot_tr_err()
+        self.plot_ts_err()
         plt.xlabel('epochs')
         plt.ylabel(self.loss.name)
+        plt.legend()
         plt.show()
 
     def show_trvl_err(self):
-        plt.plot(self.l_it, self.l_tr_err, 'r')
-        plt.plot(self.l_it, self.l_vl_err, 'g')
+        self.plot_tr_err()
+        self.plot_vl_err()
         plt.xlabel('epochs')
         plt.ylabel(self.loss.name)
+        plt.legend()
         plt.show()
 
     def show_all_err(self):
-        plt.plot(self.l_it, self.l_tr_err, 'r')
-        plt.plot(self.l_it, self.l_ts_err, 'b-.')
-        plt.plot(self.l_it, self.l_vl_err, 'g:')
+        self.plot_tr_err()
+        self.plot_vl_err()
+        self.plot_ts_err()
         plt.xlabel('epochs')
         plt.ylabel(self.loss.name)
+        plt.legend()
         plt.show()
 
     def show_trts_acc(self):
-        plt.plot(self.l_it, self.l_tr_acc, 'r')
-        plt.plot(self.l_it, self.l_ts_acc, 'b')
+        self.plot_tr_acc()
+        self.plot_ts_acc()
         plt.xlabel('epochs')
-        plt.ylabel('accuracy')
+        plt.ylabel(self.acc.name)
+        plt.legend()
         plt.show()
 
     def show_trvl_acc(self):
-        plt.plot(self.l_it, self.l_tr_acc, 'r')
-        plt.plot(self.l_it, self.l_vl_acc, 'g')
+        self.plot_tr_err()
+        self.plot_vl_err()
         plt.xlabel('epochs')
-        plt.ylabel('accuracy')
+        plt.ylabel(self.acc.name)
+        plt.legend()
         plt.show()
 
     def show_all_acc(self):
-        plt.plot(self.l_it, self.l_tr_acc, 'r')
-        plt.plot(self.l_it, self.l_ts_acc, 'b-.')
-        plt.plot(self.l_it, self.l_vl_acc, 'g:')
+        self.plot_tr_acc()
+        self.plot_vl_acc()
+        self.plot_ts_acc()
         plt.xlabel('epochs')
-        plt.ylabel('accuracy')
+        plt.ylabel(self.acc.name)
+        plt.legend()
         plt.show()
-
 
     def save_trts_err(self, path):
         plt.figure()
-        plt.plot(self.l_it, self.l_tr_err, 'r')
-        plt.plot(self.l_it, self.l_ts_err, 'b')
+        self.plot_tr_err()
+        self.plot_ts_err()
         plt.xlabel('epochs')
         plt.ylabel(self.loss.name)
+        plt.legend()
         plt.savefig(path)
-
 
     def save_trts_acc(self, path):
         plt.figure()
-        plt.plot(self.l_it, self.l_tr_acc, 'r')
-        plt.plot(self.l_it, self.l_ts_acc, 'b')
+        self.plot_tr_acc()
+        self.plot_ts_acc()
         plt.xlabel('epochs')
-        plt.ylabel('accuracy')
+        plt.ylabel(self.acc.name)
+        plt.legend()
         plt.savefig(path)
 
+    def save_all_err(self, path):
+        plt.figure()
+        self.plot_tr_err()
+        self.plot_vl_err()
+        self.plot_ts_err()
+        plt.xlabel('epochs')
+        plt.ylabel(self.acc.name)
+        plt.legend()
+        plt.savefig(path)
+
+    def save_all_acc(self, path):
+        plt.figure()
+        self.plot_tr_acc()
+        self.plot_vl_acc()
+        self.plot_ts_acc()
+        plt.xlabel('epochs')
+        plt.ylabel(self.acc.name)
+        plt.legend()
+        plt.savefig(path)
 
