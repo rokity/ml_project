@@ -8,9 +8,11 @@ dim_in = 6
 one_hot = 17
 dim_hid = 4
 dim_out = 1
-f = FunctionsFactory.build('tanh')
+f = FunctionsFactory.build('sigmoid')
+out_f = FunctionsFactory.build('tanh')
 loss = FunctionsFactory.build('lms')
 acc = FunctionsFactory.build('accuracy')
+
 
 if one_hot is None:
     topology = [dim_in, dim_hid, dim_out]
@@ -24,7 +26,8 @@ tr.normalize_out()
 #vl.normalize_out()
 ts.normalize_out()
 
-nn = NeuralNetwork(topology, f, loss, acc, dim_hid, tr.size, 0.2, 0.6, 0.01)
+nn = NeuralNetwork(topology, f, loss, acc, dim_hid, tr.size, 0.5, 0.5, 0.01)
+nn.set_out_actf(out_f)
 err = nn.train(tr, tr, ts, 1e-2, 2000)
 print("Validation error: {}\n".format(err))
 nn.show_all_err()
