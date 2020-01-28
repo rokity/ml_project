@@ -229,15 +229,6 @@ class NeuralNetwork:
         plt.ylabel(self.acc.name)
         plt.legend()
         plt.savefig(path)
-
-    def get_eta(self):
-        return self.eta
-    
-    def get_momentum(self):
-        return self.alpha
-    
-    def get_lambda(self):
-        return self.lam
         
     def save_all_err(self, path):
         plt.figure()
