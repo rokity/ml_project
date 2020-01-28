@@ -9,6 +9,8 @@ class FunctionsFactory:
             return Function(name, tanh, tanh_der)
         elif name == 'sigmoid':
             return Function(name, sigmoid, sigmoid_der)
+        elif name == 'reLU':
+            return Function(name, reLU, reLU_der)
         elif name == 'linear':
             return Function(name, linear, linear_der)
         elif name == 'lms':
@@ -19,8 +21,7 @@ class FunctionsFactory:
             return Function(name, mse, mse_der)
         elif name == 'accuracy':
             return Function(name, accuracy, None)
-        elif name == 'accuracy_multiple':
-            return Function(name, accuracy_multiple, None)
+
 
 
 class Function:
@@ -54,6 +55,17 @@ def linear(x):
 
 def linear_der(x):
     return np.identity(x.size)
+
+
+def reLU(x):
+    x[x <= 0] = 0.0
+    return x
+
+
+def reLU_der(x):
+    x[x > 0] = 1.0
+    x[x <= 0] = 0.0
+    return np.diag(x).reshape((x.shape[0], x.shape[0]))
 
 
 # ----------------- Loss functions -----------------
