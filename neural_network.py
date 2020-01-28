@@ -47,7 +47,7 @@ class NeuralNetwork:
             y = self.feedforward(x.T)
             err += self.loss.compute_fun(d, y)
             acc += self.acc.compute_fun(d, y)
-        return err.item() / dataset.size, acc / dataset.size
+        return float(err) / dataset.size, acc / dataset.size
 
     def backpropagation(self, d):
         loc_grad = None
@@ -65,8 +65,6 @@ class NeuralNetwork:
         validation_err = 0
         min_tr_err = sys.float_info.max
         min_vl_err = sys.float_info.max
-
-        k = 150
 
         while it < epochs:
 
@@ -104,7 +102,7 @@ class NeuralNetwork:
             min_vl_err = min(min_vl_err, validation_err)
 
             # compute error in test set
-            if not (ts is None):
+            if ts is not None:
                 err, acc = self.feedforward_dataset(ts)
                 self.l_ts_err.append(err)
                 self.l_ts_acc.append(acc)
@@ -113,22 +111,23 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            # print("Error it {}: {},\t {},\t {}".format(it, training_err, validation_err, gl))
+            # print("It {}: tr_err: {},\t vl_err: {},\t gl: {}".format(it, training_err, validation_err, gl))
 
-            '''
-            if validation_err - min_vl_err > 0:
-                k -= 1
-            if k == 0:
-                break
-            '''
-            if abs(gl) > 1 and training_err - min_tr_err > 0:
+            if gl > 0.5 and training_err - min_tr_err > 0:
                 break
             it += 1
+
         print("Exit at epoch: {}".format(it))
+
         if self.acc.name == 'accuracy':
             print("% accuracy training set: {}".format(self.l_tr_acc[-1]*100))
             print("% accuracy validation set: {}".format(self.l_vl_acc[-1]*100))
             print("% accuracy test set: {}".format(self.l_ts_acc[-1]*100))
+        else:
+            print("{} training set: {}".format(self.acc.name, self.l_tr_acc[-1]))
+            print("{} validation set: {}".format(self.acc.name, self.l_vl_acc[-1]))
+            print("{} accuracy test set: {}".format(self.acc.name, self.l_ts_acc[-1]))
+
         return validation_err
 
     def sum_square_weights(self, size):
@@ -231,13 +230,14 @@ class NeuralNetwork:
     
     def get_lambda(self):
         return self.lam
+        
     def save_all_err(self, path):
         plt.figure()
         self.plot_tr_err()
         self.plot_vl_err()
         self.plot_ts_err()
         plt.xlabel('epochs')
-        plt.ylabel(self.acc.name)
+        plt.ylabel(self.loss.name)
         plt.legend()
         plt.savefig(path)
 
