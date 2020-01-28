@@ -113,7 +113,7 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            print("Error it {}: {},\t {},\t {}".format(it, training_err, validation_err, gl))
+            # print("Error it {}: {},\t {},\t {}".format(it, training_err, validation_err, gl))
 
             '''
             if validation_err - min_vl_err > 0:
@@ -124,7 +124,7 @@ class NeuralNetwork:
             if abs(gl) > 1 and training_err - min_tr_err > 0:
                 break
             it += 1
-        print("Exit at epoch: {}".format(it))
+        # print("Exit at epoch: {}".format(it))
         return validation_err
 
     def sum_square_weights(self, size):
@@ -195,4 +195,12 @@ class NeuralNetwork:
         plt.ylabel('accuracy')
         plt.savefig(path)
 
+    def get_eta(self):
+        return self.eta
+    
+    def get_momentum(self):
+        return self.alpha
+    
+    def get_lambda(self):
+        return self.lam
 
