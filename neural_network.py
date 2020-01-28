@@ -119,7 +119,7 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            print("It {}: tr_err: {},\t vl_err: {},\t gl: {}".format(it, training_err, validation_err, gl))
+            # print("It {}: tr_err: {},\t vl_err: {},\t gl: {}".format(it, training_err, validation_err, gl))
 
             if gl > 0.5 and training_err - min_tr_err > 0:
                 break
@@ -230,6 +230,15 @@ class NeuralNetwork:
         plt.legend()
         plt.savefig(path)
 
+    def get_eta(self):
+        return self.eta
+    
+    def get_momentum(self):
+        return self.alpha
+    
+    def get_lambda(self):
+        return self.lam
+        
     def save_all_err(self, path):
         plt.figure()
         self.plot_tr_err()

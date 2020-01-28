@@ -28,7 +28,6 @@ print("tr size: {}".format(tr.size))
 print("vl size: {}".format(vl.size))
 print("ts size: {}".format(ts.size))
 
-
 avg = tr.features_scaling()
 vl.features_scaling_avg(avg)
 ts.features_scaling_avg(avg)
