@@ -63,7 +63,7 @@ if __name__ == "__main__":
         while len(process) > 0:
             p = process.pop()
             p.join()
-            p.close()
+            p.terminate()
             print("finito {}".format(count))
         print(datetime.datetime.now())
 
