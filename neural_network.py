@@ -30,6 +30,15 @@ class NeuralNetwork:
                 layer = Layer(topology[i], topology[i + 1], f_act, loss, fan_in, 'Layer ' + str(i))
             self.layers.append(layer)
 
+    def get_eta(self):
+        return self.eta
+
+    def get_momentum(self):
+        return self.alpha
+
+    def get_lambda(self):
+        return self.lam
+
     def set_out_actf(self, act_fun):
         self.layers[-1].f_act = act_fun
 
@@ -97,7 +106,6 @@ class NeuralNetwork:
 
             # generalization loss
             gl = 100*((validation_err / min_vl_err) - 1)
-            #print("GL({}): {}".format(it, gl))
 
             min_vl_err = min(min_vl_err, validation_err)
 

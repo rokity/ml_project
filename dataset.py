@@ -14,8 +14,7 @@ class Dataset:
     def features_scaling(self):
         average = np.empty((1, self.dim_in))
         for i in range(self.dim_in):
-            sum = self.data_in[:, i].sum()
-            average[0, i] = sum / self.size
+            average[0, i] = self.data_in[:, i].sum() / self.size
         for i in range(self.size):
             self.data_in[i, :] -= average.reshape(self.dim_in)
         return average
