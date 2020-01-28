@@ -93,7 +93,7 @@ class NeuralNetwork:
             self.l_tr_acc.append(acc)
             tot_weights = self.sum_square_weights(tr.size)
 
-            training_err = err + self.lam * tot_weights
+            training_err = err + (self.lam * tot_weights)
 
             min_tr_err = min(min_tr_err, training_err)
 
@@ -119,7 +119,7 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            # print("It {}: tr_err: {},\t vl_err: {},\t gl: {}".format(it, training_err, validation_err, gl))
+            print("It {}: tr_err: {},\t vl_err: {},\t gl: {}".format(it, training_err, validation_err, gl))
 
             if gl > 0.5 and training_err - min_tr_err > 0:
                 break
