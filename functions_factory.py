@@ -1,5 +1,6 @@
 import numpy as np
 
+from numba import jit
 
 class FunctionsFactory:
 
@@ -41,6 +42,7 @@ def tanh_der(x):
     return 1 - tanh(x)**2
 
 
+@jit
 def sigmoid(x):
     return 1/(1 + np.exp(-x))
 
@@ -77,20 +79,20 @@ def lms(d, y):
 def lms_der(d, y):
     return -2*(d - y)
 
-
+@jit
 def mse(d, y):
     diff = d - y
     return np.dot(diff, diff.T)
 
-
+@jit
 def mse_der(d, y):
     return -2*(d - y)
 
-
+@jit
 def mee(d, y):
     return np.linalg.norm(d - y)
 
-
+@jit
 def mee_der(d, y):
     return -(d - y) / np.linalg.norm(d - y)
 

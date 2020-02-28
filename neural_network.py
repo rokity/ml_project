@@ -121,12 +121,15 @@ class NeuralNetwork:
 
             print("It {}: tr_err: {},\t vl_err: {},\t gl: {}".format(it, training_err, validation_err, gl))
 
-            if gl > 0.5 and training_err - min_tr_err > 0:
+            if gl > 0.2 and training_err - min_tr_err > 0:
                 break
             it += 1
 
         print("Exit at epoch: {}".format(it))
 
+        print("{} training set: {}".format(self.loss.name, self.l_tr_err[-1]))
+        print("{} validation set: {}".format(self.loss.name, self.l_vl_err[-1]))
+        print("{} test set: {}".format(self.loss.name, self.l_ts_err[-1]))
         if self.acc.name == 'accuracy':
             print("% accuracy training set: {}".format(self.l_tr_acc[-1]*100))
             print("% accuracy validation set: {}".format(self.l_vl_acc[-1]*100))
