@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Dataset:
     def __init__(self, dim_in, dim_out, data):
         self.size = data.shape[0]

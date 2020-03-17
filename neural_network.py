@@ -119,7 +119,7 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            print("It {}: tr_err: {},\t vl_err: {},\t gl: {}".format(it, training_err, validation_err, gl))
+            #print("It {}: tr_err: {},\t vl_err: {},\t gl: {}".format(it, training_err, validation_err, gl), end='\r')
 
             if gl > 0.2 and training_err - min_tr_err > 0:
                 break
