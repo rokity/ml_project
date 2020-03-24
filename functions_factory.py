@@ -23,7 +23,6 @@ class FunctionsFactory:
             return Function(name, accuracy, None)
 
 
-
 class Function:
     def __init__(self, name, c_fun, c_der):
         self.name = name

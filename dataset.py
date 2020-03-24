@@ -24,8 +24,8 @@ class Dataset:
         for i in range(self.size):
             self.data_in[i, :] -= average.reshape(self.dim_in)
 
-    def normalize_out(self):
+    def normalize_out_classification(self, prev_val, new_val):
         for i in range(self.size):
-            if self.data_out[i, 0] == 0:
-                self.data_out[i, 0] = -1
+            if self.data_out[i, 0] == prev_val:
+                self.data_out[i, 0] = new_val
 

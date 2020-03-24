@@ -8,7 +8,10 @@ class Layer:
         self.f_act = f_act
         self.loss = loss
         self.name = name
-        self.__init_layer(fan_in)
+        self.fan_in = fan_in
+
+    def compile(self):
+        self.__init_layer(self.fan_in)
 
     def __init_layer(self, fan_in):
         # max = 0.7 * 2 / fan_in
