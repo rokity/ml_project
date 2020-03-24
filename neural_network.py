@@ -1,19 +1,15 @@
 from layer import *
 from dataset import Dataset
+from functions_factory import FunctionsFactory
 import matplotlib.pyplot as plt
 import sys
 
 
 class NeuralNetwork:
-    def __init__(self, topology, f_act, loss, acc, fan_in, batch_size=1, eta=0.5, alpha=0, lam=0):
+    def __init__(self, loss, acc):
         self.layers = []
-        self.loss = loss
-        self.acc = acc
-        self.batch_size = batch_size
-        self.eta = eta
-        self.alpha = alpha
-        self.lam = lam
-        self.__init_layers(topology, f_act, loss, fan_in)
+        self.loss = FunctionsFactory.build(loss)
+        self.acc = FunctionsFactory.build(acc)
         self.l_tr_err = []
         self.l_vl_err = []
         self.l_ts_err = []
@@ -22,38 +18,50 @@ class NeuralNetwork:
         self.l_ts_acc = []
         self.l_it = []
 
-    def __init_layers(self, topology, f_act, loss, fan_in):
-        for i in range(len(topology) - 1):
-            if i == len(topology) - 2:
-                layer = OutputLayer(topology[i], topology[i + 1], f_act, loss, fan_in, 'Layer ' + str(i))
-            else:
-                layer = Layer(topology[i], topology[i + 1], f_act, loss, fan_in, 'Layer ' + str(i))
-            self.layers.append(layer)
+    def get_vl_error(self):
+        return self.l_vl_err[-1]
 
-    def get_eta(self):
-        return self.eta
+    def compile(self, eta, alpha, lam, batch_size=1):
+        self.eta = eta
+        self.alpha = alpha
+        self.lam = lam
+        self.batch_size = batch_size
+        for i in range(len(self.layers)):
+            self.layers[i].compile()
 
-    def get_momentum(self):
-        return self.alpha
+    def add_input_layer(self, dim_in, dim_out, f_act, fan_in=1, label='Input layer'):
+        f_act = FunctionsFactory.build(f_act)
+        layer = Layer(dim_in, dim_out, f_act, self.loss, fan_in, label)
+        self.layers.append(layer)
 
-    def get_lambda(self):
-        return self.lam
+    def add_hidden_layer(self, dim_out, f_act, fan_in=1, label='Hidden layer'):
+        f_act = FunctionsFactory.build(f_act)
+        layer = Layer(self.layers[-1].dim_out, dim_out, f_act, self.loss, fan_in, label)
+        self.layers.append(layer)
 
-    def set_out_actf(self, act_fun):
-        self.layers[-1].f_act = act_fun
+    def add_output_layer(self, dim_out, f_act, fan_in=1, label='Input layer'):
+        f_act = FunctionsFactory.build(f_act)
+        layer = OutputLayer(self.layers[-1].dim_out, dim_out, f_act, self.loss, fan_in, label)
+        self.layers.append(layer)
 
-    def feedforward(self, x: np.ndarray):
+    def predict(self, x: np.ndarray):
+        return self.__feedforward(x)
+
+    def predict_dataset(self, dataset: Dataset):
+        return self.__feedforward_dataset(dataset)
+
+    def __feedforward(self, x: np.ndarray):
         for layer in self.layers:
             x = layer.feedforward(x)
         return x
 
-    def feedforward_dataset(self, dataset: Dataset):
+    def __feedforward_dataset(self, dataset: Dataset):
         err = 0
         acc = 0
         for i in range(dataset.size):
             x, d = dataset.get_data(i)
             x = x.reshape(x.shape[0], 1)
-            y = self.feedforward(x.T)
+            y = self.__feedforward(x.T)
             err += self.loss.compute_fun(d, y)
             acc += self.acc.compute_fun(d, y)
         return float(err) / dataset.size, acc / dataset.size
@@ -67,7 +75,7 @@ class NeuralNetwork:
         for layer in self.layers:
             layer.update_weights(self.eta, self.alpha, self.lam, self.batch_size)
 
-    def train(self, tr, vl, ts, epsilon, epochs):
+    def train(self, epochs, tr, vl, ts=None, verbose=False):
         it = 0
         curr_i = 0
         training_err = 0
@@ -82,12 +90,12 @@ class NeuralNetwork:
                 x, d = tr.get_data(curr_i)
                 x = x.reshape(x.shape[0], 1)
                 d = d.reshape(d.shape[0], 1)
-                y = self.feedforward(x.T)
+                y = self.__feedforward(x.T)
                 self.backpropagation(d.T)
                 curr_i = (curr_i + 1) % tr.size
 
             # compute error in training set
-            err, acc = self.feedforward_dataset(tr)
+            err, acc = self.__feedforward_dataset(tr)
             err = err
             self.l_tr_err.append(err)
             self.l_tr_acc.append(acc)
@@ -98,20 +106,20 @@ class NeuralNetwork:
             min_tr_err = min(min_tr_err, training_err)
 
             # compute error in validation set
-            err, acc = self.feedforward_dataset(vl)
+            err, acc = self.__feedforward_dataset(vl)
             self.l_vl_err.append(err)
             self.l_vl_acc.append(acc)
 
             validation_err = err
 
             # generalization loss
-            gl = 100*((validation_err / min_vl_err) - 1)
+            gl = 100 * ((validation_err / min_vl_err) - 1)
 
             min_vl_err = min(min_vl_err, validation_err)
 
             # compute error in test set
             if ts is not None:
-                err, acc = self.feedforward_dataset(ts)
+                err, acc = self.__feedforward_dataset(ts)
                 self.l_ts_err.append(err)
                 self.l_ts_acc.append(acc)
 
@@ -119,25 +127,30 @@ class NeuralNetwork:
 
             self.update_weights()
 
-            #print("It {}: tr_err: {},\t vl_err: {},\t gl: {}".format(it, training_err, validation_err, gl), end='\r')
+            if verbose:
+                print(
+                    "It {}:\t tr_err: {},\t vl_err: {},\t gl: {}".format(it, training_err, validation_err, gl),
+                    end='\r'
+                )
 
             if gl > 0.2 and training_err - min_tr_err > 0:
                 break
             it += 1
 
-        print("Exit at epoch: {}".format(it))
+        if verbose:
+            print("Exit at epoch: {}".format(it))
 
-        print("{} training set: {}".format(self.loss.name, self.l_tr_err[-1]))
-        print("{} validation set: {}".format(self.loss.name, self.l_vl_err[-1]))
-        print("{} test set: {}".format(self.loss.name, self.l_ts_err[-1]))
-        if self.acc.name == 'accuracy':
-            print("% accuracy training set: {}".format(self.l_tr_acc[-1]*100))
-            print("% accuracy validation set: {}".format(self.l_vl_acc[-1]*100))
-            print("% accuracy test set: {}".format(self.l_ts_acc[-1]*100))
-        else:
-            print("{} training set: {}".format(self.acc.name, self.l_tr_acc[-1]))
-            print("{} validation set: {}".format(self.acc.name, self.l_vl_acc[-1]))
-            print("{} accuracy test set: {}".format(self.acc.name, self.l_ts_acc[-1]))
+            print("{} training set: {}".format(self.loss.name, self.l_tr_err[-1]))
+            print("{} validation set: {}".format(self.loss.name, self.l_vl_err[-1]))
+            print("{} test set: {}".format(self.loss.name, self.l_ts_err[-1]))
+            if self.acc.name == 'accuracy':
+                print("% accuracy training set: {}".format(self.l_tr_acc[-1] * 100))
+                print("% accuracy validation set: {}".format(self.l_vl_acc[-1] * 100))
+                print("% accuracy test set: {}".format(self.l_ts_acc[-1] * 100))
+            else:
+                print("{} training set: {}".format(self.acc.name, self.l_tr_acc[-1]))
+                print("{} validation set: {}".format(self.acc.name, self.l_vl_acc[-1]))
+                print("{} accuracy test set: {}".format(self.acc.name, self.l_ts_acc[-1]))
 
         return validation_err
 
@@ -232,7 +245,7 @@ class NeuralNetwork:
         plt.ylabel(self.acc.name)
         plt.legend()
         plt.savefig(path)
-        
+
     def save_all_err(self, path):
         plt.figure()
         self.plot_tr_err()
