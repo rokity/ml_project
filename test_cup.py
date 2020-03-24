@@ -1,32 +1,35 @@
-from functions_factory import FunctionsFactory
 from neural_network import NeuralNetwork
 from parser import *
+from random_search import random_search
+from utility import write_results
 
 # initialize parameters
-path_tr = 'cup/ML-CUP19-TR.csv'
-path_ts = 'cup/ML-CUP19-TS.csv'
+path_tr = 'data/cup/ML-CUP19-TR.csv'
+path_ts = 'data/cup/ML-CUP19-TS.csv'
+path_result_randomsearch = 'out/monks/monk2/randomsearch.csv'
+path_err = 'out/cup/mse_cup'
+path_acc = 'out/cup/mee_cup'
+path_result_bestmodel = 'out/cup/results.csv'
+
+# activation functions
+f = 'sigmoid'
+out_f = 'linear'
+
+# loss function
+loss = 'mse'
+
+# accuracy function
+acc = 'mee'
+
 dim_in = 20
 dim_hid = 15
 dim_hid2 = 10
 dim_out = 2
-# activation functions
-f = FunctionsFactory.build('sigmoid')
-out_f = FunctionsFactory.build('linear')
-
-# loss function
-loss = FunctionsFactory.build('mse')
-
-# accuracy function
-acc = FunctionsFactory.build('mee')
-
-topology = [dim_in, dim_hid, dim_hid2, dim_out]
+fan_in = dim_hid + dim_hid2
 
 parser = Cup_parser(path_tr)
 tr, vl, ts = parser.parse(dim_in, dim_out)
 
-print("tr size: {}".format(tr.size))
-print("vl size: {}".format(vl.size))
-print("ts size: {}".format(ts.size))
 
 ''' It can be used to feature scaling
 avg = tr.features_scaling()
@@ -34,13 +37,22 @@ vl.features_scaling_avg(avg)
 ts.features_scaling_avg(avg)
 '''
 
-nn = NeuralNetwork(topology, f, loss, acc, dim_hid+dim_hid2, tr.size, 0.1, 0.3, 0.01)
-nn.set_out_actf(out_f)
+model = NeuralNetwork(loss=loss, acc=acc)
+model.add_input_layer(dim_in, dim_hid, f, fan_in)
+model.add_hidden_layer(dim_hid2, f, fan_in)
+model.add_output_layer(dim_out, out_f, fan_in)
 
-err = nn.train(tr, vl, ts, 1e-2, 2000)
+best_model = random_search(model, tr, vl, ts, max_evals=16, path_results=path_result_randomsearch, verbose=True, n_threads=7)
 
-print("Validation error: {}\n".format(err))
-#nn.save_trts_err('./out/1_all_err.png')
-#nn.save_trts_acc('./out/1_all_acc.png')
-nn.show_all_err()
-nn.show_all_acc()
+err_tr, acc_tr = best_model.predict_dataset(tr)
+err_ts, acc_ts = best_model.predict_dataset(ts)
+errors = [err_tr, err_ts]
+accuracy = [acc_tr, acc_ts]
+
+res = {
+    'mle': errors,
+    'mse': accuracy,
+}
+
+save = (path_err, path_acc, path_result_bestmodel)
+write_results(res, best_model, save=None)
