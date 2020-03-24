@@ -6,7 +6,7 @@ from utility import write_results
 # initialize parameters
 path_tr = 'data/cup/ML-CUP19-TR.csv'
 path_ts = 'data/cup/ML-CUP19-TS.csv'
-path_result_randomsearch = 'out/monks/monk2/randomsearch.csv'
+path_result_randomsearch = 'out/cup/randomsearch.csv'
 path_err = 'out/cup/mse_cup'
 path_acc = 'out/cup/mee_cup'
 path_result_bestmodel = 'out/cup/results.csv'
@@ -42,7 +42,7 @@ model.add_input_layer(dim_in, dim_hid, f, fan_in)
 model.add_hidden_layer(dim_hid2, f, fan_in)
 model.add_output_layer(dim_out, out_f, fan_in)
 
-best_model = random_search(model, tr, vl, ts, max_evals=16, path_results=path_result_randomsearch, verbose=True, n_threads=7)
+best_model = random_search(model, tr, vl, ts, max_evals=16, path_results=path_result_randomsearch, verbose=True, n_threads=8)
 
 err_tr, acc_tr = best_model.predict_dataset(tr)
 err_ts, acc_ts = best_model.predict_dataset(ts)
@@ -55,4 +55,4 @@ res = {
 }
 
 save = (path_err, path_acc, path_result_bestmodel)
-write_results(res, best_model, save=None)
+write_results(res, best_model, save=None, all=True)
