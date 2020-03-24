@@ -50,8 +50,8 @@ errors = [err_tr, err_ts]
 accuracy = [acc_tr, acc_ts]
 
 res = {
-    'mle': errors,
-    'mse': accuracy,
+    'mse': errors,
+    'mee': accuracy,
 }
 
 save = (path_err, path_acc, path_result_bestmodel)
