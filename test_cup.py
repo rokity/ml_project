@@ -9,7 +9,7 @@ path_ts = 'data/cup/ML-CUP19-TS.csv'
 path_result_randomsearch = 'out/cup/randomsearch.csv'
 path_err = 'out/cup/mse_cup'
 path_acc = 'out/cup/mee_cup'
-path_result_bestmodel = 'out/cup/results.csv'
+path_result_bestmodel = 'out/cup/results_randomsearch.csv'
 
 # activation functions
 f = 'sigmoid'
