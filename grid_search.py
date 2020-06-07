@@ -55,15 +55,22 @@ def grid_search(model, tr, vl, ts, max_evals=10, param_grid=None, path_results=N
     pool = multiprocessing.Pool(processes=n_threads)
     results = multiprocessing.Manager().list()
 
-    for i in range(max_evals):
-        hyperaparams = {k: random.sample(v, 1)[0]
-                        for k, v in param_grid.items()}
-        eta = round(hyperaparams['eta'], 2)
-        alpha = round(hyperaparams['alpha'], 2)
-        lam = round(hyperaparams['lambda'], 2)
-        nn = deepcopy(model)
-        nn.compile(eta, alpha, lam, tr.size)
-        pool.apply_async(func=run, args=(nn, tr, vl, ts, results, verbose))
+    for alpha in param_grid['alpha']:
+        for eta in param_grid['eta']:
+            for lam in param_grid['lambda']:
+                nn = deepcopy(model)
+                nn.compile(eta, alpha, lam, tr.size)
+                pool.apply_async(func=run, args=(nn, tr, vl, ts, results, verbose))
+
+    # for i in range(max_evals):
+    #     hyperaparams = {k: random.sample(v, 1)[0]
+    #                     for k, v in param_grid.items()}
+    #     eta = round(hyperaparams['eta'], 2)
+    #     alpha = round(hyperaparams['alpha'], 2)
+    #     lam = round(hyperaparams['lambda'], 2)
+    #     nn = deepcopy(model)
+    #     nn.compile(eta, alpha, lam, tr.size)
+    #     pool.apply_async(func=run, args=(nn, tr, vl, ts, results, verbose))
 
     if verbose:
         print('[+] All threads are loaded')
@@ -130,7 +137,7 @@ def main():
     model.add_output_layer(dim_out, out_f, fan_in)
 
     best_model = grid_search(model, tr, vl, ts, max_evals=10,
-                             path_results=path_result_randomsearch, verbose=True, n_threads=8)
+                             path_results=path_result_randomsearch, verbose=True, n_threads=10)
 
     err_tr, acc_tr = best_model.predict_dataset(tr)
     err_ts, acc_ts = best_model.predict_dataset(ts)
@@ -142,8 +149,8 @@ def main():
         'mee': accuracy,
     }
 
-    # save = (path_err, path_acc, path_result_bestmodel)
-    # write_results(res, best_model, save=save, all=True)
+    save = (path_err, path_acc, path_result_bestmodel)
+    write_results(res, best_model, save=save, all=True)
 
 
 if __name__ == "__main__":
