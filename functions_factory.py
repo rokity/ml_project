@@ -16,11 +16,13 @@ class FunctionsFactory:
         elif name == 'lms':
             return Function(name, lms, lms_der)
         elif name == 'mee':
-            return Function(name, mee, mee_der)
+            return Function(name, mee, None)
         elif name == 'mse':
             return Function(name, mse, mse_der)
         elif name == 'accuracy':
             return Function(name, accuracy, None)
+        elif name == 'accuracy1-1':
+            return Function('accuracy', accuracy1, None)
 
 
 class Function:
@@ -57,24 +59,26 @@ def linear_der(x):
 
 
 def reLU(x):
-    x[x <= 0] = 0.0
-    return x
+    y = x.copy()
+    y[y <= 0] = 0.0
+    return y
 
 
 def reLU_der(x):
-    x[x > 0] = 1.0
-    x[x <= 0] = 0.0
-    return np.diag(x).reshape((x.shape[0], x.shape[0]))
+    y = x.copy()
+    y[y > 0] = 1.0
+    y[y <= 0] = 0.0
+    return y
 
 
 # ----------------- Loss functions -----------------
 
 def lms(d, y):
-    return (d - y)**2
+    return (1/2)*((d - y)**2)
 
 
 def lms_der(d, y):
-    return -2*(d - y)
+    return -1*(d - y)
 
 
 def mse(d, y):
@@ -85,19 +89,21 @@ def mse(d, y):
 def mse_der(d, y):
     return -2*(d - y)
 
+# ----------------- Accuracy functions -----------------
+
+
+def accuracy(d, y):
+    res = 0
+    if y >= 0.5:
+        res = 1
+    return res == d
+
+
+def accuracy1(d, y):
+    res = -1
+    if y >= 0:
+        res = 1
+    return res == d
 
 def mee(d, y):
     return np.linalg.norm(d - y)
-
-
-def mee_der(d, y):
-    return -(d - y) / np.linalg.norm(d - y)
-
-
-# ----------------- Accuracy functions -----------------
-
-def accuracy(d, y):
-    if np.abs(d - y) < 0.5:
-        return 1
-    else:
-        return 0

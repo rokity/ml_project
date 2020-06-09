@@ -1,4 +1,6 @@
 import pandas as pd
+import matplotlib as mpl
+from matplotlib import pyplot as plt
 
 
 def write_results(res, best_model, save=None, all=False):
@@ -19,3 +21,8 @@ def write_results(res, best_model, save=None, all=False):
         else:
             best_model.save_trts_err(path_err)
             best_model.save_trts_acc(path_acc)
+
+
+def set_style_plot(style='seaborn', fig_size=(12,10)):
+    plt.style.use(style)
+    mpl.rcParams['figure.figsize'] = fig_size

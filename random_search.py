@@ -6,9 +6,9 @@ from copy import deepcopy
 
 
 PARAM_GRID = {
-    'alpha': list(np.linspace(0.1, 1, 10)),
-    'eta': list(np.linspace(0.1, 1, 10)),
-    'lambda': list(np.linspace(0.01, 0.1, 10))
+    'alpha': list(np.linspace(0.1, 1, 10).round(2)),
+    'eta': list(np.linspace(0.1, 1, 10).round(2)),
+    'lambda': list(np.linspace(0.01, 0.1, 10).round(3))
 }
 
 
@@ -34,15 +34,15 @@ def write_csv(l_results, path):
     results.to_csv(path, index=False)
 
 
-def run(nn, tr, vl, ts, results, verbose):
-    err = nn.train(2000, tr, vl, ts, verbose=False)
+def run(nn, tr, vl, ts, results, verbose, tol, epochs):
+    err = nn.train(epochs, tr, vl, ts, verbose=False, tol=tol)
     results.append((nn.eta, nn.alpha, nn.lam, err, nn))
     if verbose:
         print("[+] Task completed")
     return err
 
 
-def random_search(model, tr, vl, ts, max_evals=10, param_grid=None, path_results=None, n_threads=None, verbose=False):
+def random_search(model, tr, vl, ts, max_evals=10, param_grid=None, path_results=None, n_threads=None, tol=None, epochs=2000, verbose=False):
     print('[+] Random search is started')
     if param_grid is None:
         param_grid = PARAM_GRID
@@ -59,7 +59,7 @@ def random_search(model, tr, vl, ts, max_evals=10, param_grid=None, path_results
         lam = round(hyperaparams['lambda'], 2)
         nn = deepcopy(model)
         nn.compile(eta, alpha, lam, tr.size)
-        pool.apply_async(func=run, args=(nn, tr, vl, ts, results, verbose))
+        pool.apply_async(func=run, args=(nn, tr, vl, ts, results, verbose, tol, epochs))
 
     if verbose:
         print('[+] All threads are loaded')
