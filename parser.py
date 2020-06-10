@@ -15,9 +15,9 @@ class Monks_parser:
             dim_features = one_hot
 
         X_train = dataset_train[:, dim_out:dim_features+dim_out].reshape((n_samples_train, dim_features))
-        Y_train = dataset_train[:, 1].reshape((n_samples_train, dim_out))
+        Y_train = dataset_train[:, 0].reshape((n_samples_train, dim_out))
         X_test = dataset_test[:, dim_out:dim_features+dim_out].reshape((n_samples_test, dim_features))
-        Y_test = dataset_test[:, 1].reshape((n_samples_test, dim_out))
+        Y_test = dataset_test[:, 0].reshape((n_samples_test, dim_out))
         return X_train, Y_train, X_test, Y_test
 
     def __parse_file(self, path, dim_features, dim_out, one_hot, shuffle):
