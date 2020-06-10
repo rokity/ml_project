@@ -10,10 +10,10 @@ from utility import write_results
 set_style_plot()
 
 PARAM_GRID = {
-    'alpha': list(np.linspace(0.1, 1, 10).round(2)),
-    'eta': list(np.linspace(0.1, 1, 10).round(2)),
-    'lambda': list(np.linspace(0.01, 0.1, 10)),
-    'hidden_nodes': list(np.linspace(2, 4, 3, dtype=np.uint8))
+    'alpha': list(np.linspace(0.1, 0.9, 9).round(2)),
+    'eta': list(np.linspace(0.1, 0.9, 9).round(2)),
+    'lambda': list(np.linspace(0.01, 0.1, 10).round(3)),
+    'hidden_nodes': list([3])
 }
 
 
@@ -55,15 +55,15 @@ model = random_search(
     create_model,
     (X_train, Y_train),
     (X_train, Y_train),
-    20,
+    500,
     X_train.shape[0],
     param_grid=PARAM_GRID,
     monitor_value='mse',
     ts=(X_test, Y_test),
-    max_evals=5,
+    max_evals=50,
     n_threads=1,
     #path_results=path_result_randomsearch,
-    tol=1e-3,
+    tol=1e-2,
     verbose=True
 )
 

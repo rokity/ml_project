@@ -3,12 +3,12 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 import numpy as np
 
-
+#
 def write_results(res, best_model, save=None, all=False):
     results = pd.DataFrame(res, index=['Training set', 'Test set'])
     print(results)
     if all:
-        best_model.show_all_err()
+        best_model.plot_loss()
         best_model.show_all_acc()
     else:
         best_model.show_trts_err()
@@ -25,16 +25,37 @@ def write_results(res, best_model, save=None, all=False):
 
 
 def set_style_plot(style='seaborn', fig_size=(12, 10)):
+    """
+
+    @param style: style used for the plot
+    @param fig_size: size the plots
+    """
     plt.style.use(style)
     mpl.rcParams['figure.figsize'] = fig_size
 
 
 def change_output_value(targets, old_value, new_value):
+    """
+
+    @param targets: target vector
+    @param old_value: value to update
+    @param new_value: updated value
+    @return:
+    """
     targets[targets == old_value] = new_value
     return targets
 
 
 def train_test_split(X, Y, test_size=0.25, shuffle=False):
+    """
+
+    @param X: samples
+    @param Y: targets
+    @param test_size: size of the test (%)
+    @param shuffle: True if you want shuffle data,
+                    False otherwise
+    @return: (X_train, Y_train, X_test, Y_test)
+    """
     n_samples = X.shape[0]
     if shuffle:
         idx = np.random.permutation(n_samples)
@@ -49,6 +70,16 @@ def train_test_split(X, Y, test_size=0.25, shuffle=False):
 
 
 def train_val_test_split(X, Y, val_size=0.25, test_size=0.25, shuffle=False):
+    """
+
+    @param X: samples
+    @param Y: targets
+    @param test_size: size of the validation set (%)
+    @param test_size: size of the test set (%)
+    @param shuffle: True if you want shuffle data,
+                    False otherwise
+    @return: (X_train, Y_train, X_val, Y_val, X_test, Y_test)
+    """
     n_samples = X.shape[0]
     if shuffle:
         idx = np.random.permutation(n_samples)

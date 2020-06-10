@@ -13,8 +13,6 @@ class FunctionsFactory:
             return Function(name, reLU, reLU_der)
         elif name == 'linear':
             return Function(name, linear, linear_der)
-        #elif name == 'lms':
-        #    return Function(name, lms, lms_der)
         elif name == 'mee':
             return Function(name, mee, None)
         elif name == 'mse':
@@ -73,16 +71,6 @@ def reLU_der(x):
 
 
 # ----------------- Loss functions -----------------
-
-'''
-def lms(d, y):
-    return (1/2)*((d - y)**2)
-
-
-def lms_der(d, y):
-    return -1*(d - y)
-'''
-
 
 def mse(d, y):
     return np.linalg.norm(d-y)**2

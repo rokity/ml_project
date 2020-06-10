@@ -7,6 +7,15 @@ class Monks_parser:
         self.path_ts = path_ts
 
     def parse(self, dim_features, dim_out, one_hot=None, shuffle=False):
+        """
+
+        @param dim_features: number of features
+        @param dim_out: number of labels
+        @param one_hot: one hot encoding
+        @param shuffle: True if you want shuffle data,
+                        False otherwise
+        @return: (X_train, Y_train, X_test, Y_test)
+        """
         dataset_train = self.__parse_file(self.path_tr, dim_features, dim_out, one_hot, shuffle)
         n_samples_train = dataset_train.shape[0]
         dataset_test = self.__parse_file(self.path_ts, dim_features, dim_out, one_hot, shuffle)
@@ -21,6 +30,16 @@ class Monks_parser:
         return X_train, Y_train, X_test, Y_test
 
     def __parse_file(self, path, dim_features, dim_out, one_hot, shuffle):
+        """
+
+        @param path: path of the file containing the dataset
+        @param dim_features: number of features
+        @param dim_out: number of labels
+        @param one_hot: one hot encoding
+        @param shuffle: True if you want shuffle data,
+                        False otherwise
+        @return: dataset
+        """
         with open(path, 'r') as file:
             lines = file.readlines()
             if one_hot is not None:
@@ -52,10 +71,27 @@ class Cup_parser:
         self.path = path
 
     def parse(self, dim_features, dim_out, shuffle=False):
+        """
+
+        @param dim_features: number of features
+        @param dim_out: number of labels
+        @param shuffle: True if you want shuffle data,
+                        False otherwise
+        @return: (samples, targets)
+        """
         samples, targets = self.__parse_file(self.path, dim_features, dim_out, shuffle)
         return samples, targets
 
     def __parse_file(self, path, dim_features, dim_out, shuffle):
+        """
+
+        @param path: path of the file containing the dataset
+        @param dim_features: number of features
+        @param dim_out: number of labels
+        @param shuffle: True if you want shuffle data,
+                        False otherwise
+        @return: (samples, targets)
+        """
         with open(path, 'r') as file:
             lines = file.readlines()
             data = np.zeros((len(lines), dim_features + dim_out))

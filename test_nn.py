@@ -32,18 +32,18 @@ parser = Monks_parser(path_tr, path_ts)
 
 X_train, Y_train, X_test, Y_test = parser.parse(dim_in, dim_out, one_hot)
 
-#Y_train = utility.change_output_value(Y_train, 0, -1)
-#Y_test = utility.change_output_value(Y_test, 0, -1)
+Y_train = utility.change_output_value(Y_train, 0, -1)
+Y_test = utility.change_output_value(Y_test, 0, -1)
 
 dim_in = one_hot
 dim_hid = 3
 
 model = NeuralNetwork('mse', 'accuracy')
 
-model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=RandomUniformInitialization())
-model.add_output_layer(dim_out, activation='sigmoid', kernel_initialization=GlorotBengioInitialization(dim_hid))
+model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=RandomNormalInitialization())
+model.add_output_layer(dim_out, activation='tanh', kernel_initialization=GlorotBengioInitialization(dim_hid))
 
-model.compile(0.6, 0.9, 0.1)
+model.compile(0.3, 0.8, 0.001)
 model.fit(X_train, Y_train, 500, X_train.shape[0], ts=(X_test, Y_test), verbose=True, tol=1e-2)
 
 model.plot_loss(val=False, test=True, show=True)

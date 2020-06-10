@@ -54,15 +54,15 @@ model = random_search(
     create_model,
     (X_train, Y_train),
     (X_train, Y_train),
-    200,
+    500,
     X_train.shape[0],
     param_grid=PARAM_GRID,
     monitor_value='mse',
     ts=(X_test, Y_test),
-    max_evals=50,
+    max_evals=10,
     n_threads=1,
     #path_results=path_result_randomsearch,
-    tol=0.5,
+    tol=1e-2,
     verbose=True
 )
 
