@@ -1,5 +1,4 @@
 import numpy as np
-from dataset import Dataset
 
 
 class Monks_parser:
@@ -7,12 +6,21 @@ class Monks_parser:
         self.path_tr = path_tr
         self.path_ts = path_ts
 
-    def parse(self, dim_features, dim_out, one_hot=None, perc_val=None):
-        training_set, validation_set = self.__parse_file(self.path_tr, dim_features, dim_out, one_hot, perc_val)
-        test_set, _ = self.__parse_file(self.path_ts, dim_features, dim_out, one_hot, None)
-        return training_set, validation_set, test_set
+    def parse(self, dim_features, dim_out, one_hot=None, shuffle=False):
+        dataset_train = self.__parse_file(self.path_tr, dim_features, dim_out, one_hot, shuffle)
+        n_samples_train = dataset_train.shape[0]
+        dataset_test = self.__parse_file(self.path_ts, dim_features, dim_out, one_hot, shuffle)
+        n_samples_test = dataset_test.shape[0]
+        if one_hot is not None:
+            dim_features = one_hot
 
-    def __parse_file(self, path, dim_features, dim_out, one_hot, perc_val):
+        X_train = dataset_train[:, dim_out:dim_features+dim_out].reshape((n_samples_train, dim_features))
+        Y_train = dataset_train[:, 1].reshape((n_samples_train, dim_out))
+        X_test = dataset_test[:, dim_out:dim_features+dim_out].reshape((n_samples_test, dim_features))
+        Y_test = dataset_test[:, 1].reshape((n_samples_test, dim_out))
+        return X_train, Y_train, X_test, Y_test
+
+    def __parse_file(self, path, dim_features, dim_out, one_hot, shuffle):
         with open(path, 'r') as file:
             lines = file.readlines()
             if one_hot is not None:
@@ -34,27 +42,20 @@ class Monks_parser:
                     data[i, int(line[6]) + 15] = 1
                 i += 1
             file.close()
-        np.random.shuffle(data)
-        if not (one_hot is None):
-            dim_features = one_hot
-        if not (perc_val is None):
-            n = data.shape[0] - int(data.shape[0] * perc_val)
-            tr = Dataset(dim_features, dim_out, data[0:n, :])
-            vl = Dataset(dim_features, dim_out, data[n:, :])
-            return tr, vl
-        else:
-            return Dataset(dim_features, dim_out, data), None
+        if shuffle:
+            np.random.shuffle(data)
+        return data
 
 
 class Cup_parser:
-    def __init__(self, path_tr):
-        self.path_tr = path_tr
+    def __init__(self, path):
+        self.path = path
 
-    def parse(self, dim_features, dim_out, perc_train=0.5, perc_val=0.25, perc_test=0.25):
-        training_set, validation_set, test_set = self.__parse_file(self.path_tr, dim_features, dim_out, perc_train, perc_val, perc_test)
-        return training_set, validation_set, test_set
+    def parse(self, dim_features, dim_out, shuffle=False):
+        samples, targets = self.__parse_file(self.path, dim_features, dim_out, shuffle)
+        return samples, targets
 
-    def __parse_file(self, path, dim_features, dim_out, perc_train, perc_val, perc_test):
+    def __parse_file(self, path, dim_features, dim_out, shuffle):
         with open(path, 'r') as file:
             lines = file.readlines()
             data = np.zeros((len(lines), dim_features + dim_out))
@@ -64,12 +65,10 @@ class Cup_parser:
                 data[i] = line[1:]
                 i += 1
             file.close()
-        np.random.shuffle(data)
-        n_tr = int(data.shape[0] * perc_train)
-        n_val = n_tr + int(data.shape[0] * perc_val)
-        tr = Dataset(dim_features, dim_out, data[0:n_tr, :])
-        vl = Dataset(dim_features, dim_out, data[n_tr:n_val, :])
-        ts = Dataset(dim_features, dim_out, data[n_val:, :])
-        return tr, vl, ts
+        if shuffle:
+            np.random.shuffle(data)
+        X = data[:, :dim_features]
+        Y = data[:, dim_features:dim_features+dim_out]
+        return X, Y
 
 

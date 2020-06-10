@@ -9,12 +9,12 @@ class FunctionsFactory:
             return Function(name, tanh, tanh_der)
         elif name == 'sigmoid':
             return Function(name, sigmoid, sigmoid_der)
-        elif name == 'reLU':
+        elif name == 'relu':
             return Function(name, reLU, reLU_der)
         elif name == 'linear':
             return Function(name, linear, linear_der)
-        elif name == 'lms':
-            return Function(name, lms, lms_der)
+        #elif name == 'lms':
+        #    return Function(name, lms, lms_der)
         elif name == 'mee':
             return Function(name, mee, None)
         elif name == 'mse':
@@ -47,7 +47,8 @@ def sigmoid(x):
 
 
 def sigmoid_der(x):
-    return sigmoid(x) * (1 - sigmoid(x))
+    z = sigmoid(x)
+    return z * (1 - z)
 
 
 def linear(x):
@@ -55,7 +56,7 @@ def linear(x):
 
 
 def linear_der(x):
-    return np.identity(x.size)
+    return np.ones((x.shape))
 
 
 def reLU(x):
@@ -73,21 +74,22 @@ def reLU_der(x):
 
 # ----------------- Loss functions -----------------
 
+'''
 def lms(d, y):
     return (1/2)*((d - y)**2)
 
 
 def lms_der(d, y):
     return -1*(d - y)
+'''
 
 
 def mse(d, y):
-    diff = d - y
-    return np.dot(diff, diff.T)
+    return np.linalg.norm(d-y)**2
 
 
 def mse_der(d, y):
-    return -2*(d - y)
+    return (-2)*(d - y)
 
 # ----------------- Accuracy functions -----------------
 
@@ -104,6 +106,7 @@ def accuracy1(d, y):
     if y >= 0:
         res = 1
     return res == d
+
 
 def mee(d, y):
     return np.linalg.norm(d - y)

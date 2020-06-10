@@ -7,6 +7,14 @@ class AbstractKernelInitialization:
         pass
 
 
+class RandomInitialization(AbstractKernelInitialization):
+    def __init__(self, trsl=1.0):
+        self.trsl = trsl
+
+    def initialize(self, dim_in, dim_out):
+        return np.random.randn(dim_in, dim_out) * self.trsl
+
+
 class RandomNormalInitialization(AbstractKernelInitialization):
     def __init__(self, mean=0.0, std=1.0):
         self.mean = mean

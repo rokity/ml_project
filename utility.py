@@ -29,7 +29,43 @@ def set_style_plot(style='seaborn', fig_size=(12, 10)):
     mpl.rcParams['figure.figsize'] = fig_size
 
 
-def write_blind_result(results,path):
+def change_output_value(targets, old_value, new_value):
+    targets[targets == old_value] = new_value
+    return targets
+
+
+def train_test_split(X, Y, test_size=0.25, shuffle=False):
+    n_samples = X.shape[0]
+    if shuffle:
+        idx = np.random.permutation(n_samples)
+        X = X[idx]
+        Y = Y[idx]
+    split = int(n_samples*test_size)
+    X_test = X[:split]
+    Y_test = Y[:split]
+    X_train = X[split:n_samples]
+    Y_train = Y[split:n_samples]
+    return X_train, Y_train, X_test, Y_test
+
+
+def train_val_test_split(X, Y, val_size=0.25, test_size=0.25, shuffle=False):
+    n_samples = X.shape[0]
+    if shuffle:
+        idx = np.random.permutation(n_samples)
+        X = X[idx]
+        Y = Y[idx]
+    split_test = int(n_samples*test_size)
+    split_val = int(n_samples*val_size)
+    X_test = X[:split_test]
+    Y_test = Y[:split_test]
+    X_val = X[split_test:split_test+split_val]
+    Y_val = Y[split_test:split_test+split_val]
+    X_train = X[split_test+split_val:n_samples]
+    Y_train = Y[split_test+split_val:n_samples]
+    return X_train, Y_train, X_val, Y_val, X_test, Y_test
+
+
+def write_blind_result(results, path):
     """
 
     @param results: nparray of 2D dimension to write on csv results
@@ -37,7 +73,7 @@ def write_blind_result(results,path):
     @return: boolean success or failure
     """
     f = open("out/blind/results.csv", "w")
-    f.write("# Riccardo Aamadio Samuel Fabrizi \n")
+    f.write("# Riccardo Amadio Samuel Fabrizi \n")
     f.write("# Group Nickname \n")
     f.write("# ML-CUP19 \n")
     f.write("# 02/11/2019 \n")

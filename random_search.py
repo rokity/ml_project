@@ -2,50 +2,49 @@ import numpy as np
 import multiprocessing
 import random
 import pandas as pd
-from copy import deepcopy
 
 
-PARAM_GRID = {
-    'alpha': list(np.linspace(0.1, 1, 10).round(2)),
-    'eta': list(np.linspace(0.1, 1, 10).round(2)),
-    'lambda': list(np.linspace(0.01, 0.1, 10).round(3))
-}
+def print_hyperparams(hyperperams):
+    for k, v in hyperperams.items():
+        print("\t{:20}: {:10}".format(k, v))
 
 
-def write_csv(l_results, path):
-    err = []
-    eta = []
-    mom = []
-    lam = []
-    for (et, m, l, er, _) in l_results:
-        err.append(er)
-        eta.append(et)
-        mom.append(m)
-        lam.append(l)
+def write_csv(l_results, path, hyps_name, monitor_value):
+    res = dict()
+    for hyp in hyps_name:
+        res[hyp] = []
+    res[monitor_value] = []
 
-    res = {
-        'eta': eta,
-        'momentum': mom,
-        'lambda': lam,
-        'error': err
-    }
+    for (val, hyps, _) in l_results:
+        for k, v in hyps.items():
+            res[k].append(v)
+        res[monitor_value].append(val)
 
     results = pd.DataFrame(res)
     results.to_csv(path, index=False)
 
 
-def run(nn, tr, vl, ts, results, verbose, tol, epochs):
-    err = nn.train(epochs, tr, vl, ts, verbose=False, tol=tol)
-    results.append((nn.eta, nn.alpha, nn.lam, err, nn))
+def run(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperparams, monitor_value):
+    X_train, Y_train = tr
+    model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, vl=vl, ts=ts, verbose=False, tol=tol)
+    val = model.history[monitor_value][-1]
+    results.append((val, hyperparams, model))
     if verbose:
         print("[+] Task completed")
-    return err
+    return val
 
 
-def random_search(model, tr, vl, ts, max_evals=10, param_grid=None, path_results=None, n_threads=None, tol=None, epochs=2000, verbose=False):
+def random_search(
+        create_model,
+        tr,
+        vl,
+        epochs,
+        batch_size,
+        param_grid,
+        monitor_value='val_loss',
+        ts=None, max_evals=10, path_results=None, n_threads=None, tol=None, verbose=False
+    ):
     print('[+] Random search is started')
-    if param_grid is None:
-        param_grid = PARAM_GRID
 
     if n_threads is None:
         n_threads = multiprocessing.cpu_count()
@@ -54,12 +53,11 @@ def random_search(model, tr, vl, ts, max_evals=10, param_grid=None, path_results
 
     for i in range(max_evals):
         hyperaparams = {k: random.sample(v, 1)[0] for k, v in param_grid.items()}
-        eta = round(hyperaparams['eta'], 2)
-        alpha = round(hyperaparams['alpha'], 2)
-        lam = round(hyperaparams['lambda'], 2)
-        nn = deepcopy(model)
-        nn.compile(eta, alpha, lam, tr.size)
-        pool.apply_async(func=run, args=(nn, tr, vl, ts, results, verbose, tol, epochs))
+        model = create_model(hyperaparams)
+        pool.apply_async(
+            func=run,
+            args=(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperaparams, monitor_value)
+        )
 
     if verbose:
         print('[+] All threads are loaded')
@@ -68,27 +66,23 @@ def random_search(model, tr, vl, ts, max_evals=10, param_grid=None, path_results
     pool.join()
 
     l_results = list(results)
-    l_results.sort(key=lambda x: x[3])
+    l_results.sort(key=lambda x: x[0])
+
     if verbose:
-        for e, m, l, err, _ in l_results:
-            print("[{}, {}, {}]:\t{}".format(e, m, l, err))
+        for val, hyperaparams, nn in l_results:
+            print("{}: {}".format(monitor_value, val))
 
     if path_results is not None:
-        write_csv(l_results, path_results)
+        write_csv(l_results, path_results, param_grid.keys(), monitor_value)
 
-    _, _, _, _, best_model = l_results[0]
+    _, best_hyps, best_model = l_results[0]
 
     if verbose:
-        print("Best:\n\t{:<15}{:>10}\n\t{:<15}{:>10}\n\t{:<15}{:>10}"
-            .format(
-            'eta:',
-            best_model.eta,
-            'momentum:',
-            best_model.alpha,
-            'lamda:',
-            best_model.lam))
+        print("Best result with: ")
+        print_hyperparams(best_hyps)
 
     print('[+] Random search is finished')
 
-    return best_model
+    _, _, best_model = l_results[0]
 
+    return best_model

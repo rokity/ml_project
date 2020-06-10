@@ -1,5 +1,4 @@
 from layer import *
-from dataset import Dataset
 from functions_factory import FunctionsFactory
 from kernel_initialization import *
 import matplotlib.pyplot as plt
@@ -19,7 +18,7 @@ class NeuralNetwork:
         self.metric = FunctionsFactory.build(metric)
         self.history = dict()
 
-    def compile(self, lr=0.1, momentum=0.0, l2=0.0):
+    def compile(self, lr=1e-3, momentum=0.0, l2=0.0):
         """
 
         @param lr: learning rate
@@ -33,53 +32,39 @@ class NeuralNetwork:
         for i in range(len(self.layers)):
             self.layers[i].compile()
 
-    def add_input_layer(self, dim_in, dim_out, f_act, kernel_initialization=RandomUniformInitialization(), label='Input layer'):
+    def add_layer(self, dim_out, input_dim=None, activation='linear', kernel_initialization=RandomUniformInitialization(), label='Dense input'):
         """
 
-        @param dim_in: dimension of the input
         @param dim_out: dimension of the output
-        @param f_act: string that represents the activation function
+        @param input_dim: dimension of the input
+        @param activation: string that represents the activation function
         @param kernel_initialization: weights initialization
         @param label: layer name
         @return:
         """
-        f_act = FunctionsFactory.build(f_act)
-        layer = Layer(dim_in, dim_out, f_act, self.loss, kernel_initialization, label)
+        f_act = FunctionsFactory.build(activation)
+        if input_dim is not None:
+            layer = Layer(input_dim, dim_out, f_act, self.loss, kernel_initialization, label)
+        else:
+            layer = Layer(self.layers[-1].dim_out, dim_out, f_act, self.loss, kernel_initialization, label)
         self.layers.append(layer)
 
-    def add_hidden_layer(self, dim_out, f_act, kernel_initialization=RandomUniformInitialization(), label='Hidden layer'):
+    def add_output_layer(self, dim_out, input_dim=None, activation='linear', kernel_initialization=RandomUniformInitialization(), label='Dense output'):
         """
 
         @param dim_out: dimension of the output
-        @param f_act: string that represents the activation function
+        @param input_dim: dimension of the input
+        @param activation: string that represents the activation function
         @param kernel_initialization: weights initialization
         @param label: layer name
         @return:
         """
-        f_act = FunctionsFactory.build(f_act)
-        layer = Layer(self.layers[-1].dim_out, dim_out, f_act, self.loss, kernel_initialization, label)
+        f_act = FunctionsFactory.build(activation)
+        if input_dim is not None:
+            layer = OutputLayer(input_dim, dim_out, f_act, self.loss, kernel_initialization, label)
+        else:
+            layer = OutputLayer(self.layers[-1].dim_out, dim_out, f_act, self.loss, kernel_initialization, label)
         self.layers.append(layer)
-
-    def add_output_layer(self, dim_out, f_act, kernel_initialization=RandomUniformInitialization(), label='Input layer'):
-        """
-
-        @param dim_out: dimension of the output
-        @param f_act: string that represents the activation function
-        @param kernel_initialization: weights initialization
-        @param label: layer name
-        @return:
-        """
-        f_act = FunctionsFactory.build(f_act)
-        layer = OutputLayer(self.layers[-1].dim_out, dim_out, f_act, self.loss, kernel_initialization, label)
-        self.layers.append(layer)
-
-    def predict_sample(self, x: np.ndarray):
-        """
-
-        @param x: input sample
-        @return: output prediction
-        """
-        return self.__feedforward(x)
 
     def predict(self, X: np.ndarray):
         """
@@ -88,24 +73,29 @@ class NeuralNetwork:
         @return: output predictions
         """
         out = np.zeros((X.shape[0], self.layers[-1].dim_out))
-        for i in range(X.shape[0]):
+        n_samples = X.shape[0]
+        for i in range(n_samples):
             x = X[i]
-            x = x.reshape(X.shape[0], 1)
-            out[i] = self.__feedforward(x.T)
+            out[i] = self.__feedforward(x)
         return out
 
-    def predict_dataset(self, dataset: Dataset):
+    def evaluate(self, X: np.ndarray, Y: np.ndarray):
         """
 
-        @param dataset: dataset with samples and targets
-        @return: output predictions
+        @param X: input samples
+        @param Y: output targets
+        @return: loss and metric value
         """
-        out = np.zeros((dataset.size, dataset.dim_out))
-        for i in range(dataset.size):
-            x, d = dataset.get_data(i)
-            x = x.reshape(x.shape[0], 1)
-            out[i] = self.__feedforward(x.T)
-        return out
+        err = 0
+        metric = 0
+        n_samples = X.shape[0]
+        for i in range(n_samples):
+            x = X[i].reshape((1, X.shape[1]))
+            d = Y[i].reshape((1, Y.shape[1]))
+            y = self.__feedforward(x)
+            err += float(self.loss.compute_fun(d.T, y))
+            metric += float(self.metric.compute_fun(d.T, y))
+        return err / n_samples, metric / n_samples
 
     def __feedforward(self, x: np.ndarray):
         """
@@ -113,25 +103,10 @@ class NeuralNetwork:
         @param x: input sample
         @return: output prediction
         """
+        x = x.reshape((x.shape[1], x.shape[0]))
         for layer in self.layers:
             x = layer.feedforward(x)
         return x
-
-    def evaluate_dataset(self, dataset: Dataset):
-        """
-
-        @param dataset: input samples
-        @return: loss and metric values
-        """
-        err = 0
-        metric = 0
-        for i in range(dataset.size):
-            x, d = dataset.get_data(i)
-            x = x.reshape(x.shape[0], 1)
-            y = self.__feedforward(x.T)
-            err += self.loss.compute_fun(d, y)
-            metric += self.metric.compute_fun(d, y)
-        return float(err) / dataset.size, metric / dataset.size
 
     def backpropagation(self, d):
         """
@@ -151,102 +126,115 @@ class NeuralNetwork:
         for layer in self.layers:
             layer.update_weights(self.lr, self.momentum, self.l2, batch_size)
 
-    def fit(self, tr, epochs=1000, batch_size=32, vl=None, ts=None, tol=None, verbose=False):
+    def fit(self, X_train, Y_train, epochs, batch_size, vl=None, ts=None, tol=None, verbose=False):
         """
 
+        @param X_train: training samples
+        @param Y_train: training targets
         @param epochs: epochs number
-        @param tr: training set
-        @param vl: validation set
-        @param ts: test set (used only for plot)
         @param batch_size: size of the batch
-        @param verbose: used to print some informations
+        @param vl: pair (validation samples, validation targets)
+        @param ts: pair (test samples, test targets) (used only for plot)
         @param tol: tolerance on the training set
                     if null => It uses an early stopping method
+        @param verbose: used to print some informations
         @return: error on the validation set (if it's not None) otherwise error on the training set
         """
+
         self.history[self.loss.name] = []
         self.history[self.metric.name] = []
+
         if vl is not None:
+            X_val, Y_val = vl
             self.history["val_" + self.loss.name] = []
             self.history["val_" + self.metric.name] = []
 
         if ts is not None:
+            X_test, Y_test = ts
             self.history["test_" + self.loss.name] = []
             self.history["test_" + self.metric.name] = []
 
-        it = 0
+        n_samples = X_train.shape[0]
+        curr_epoch = 0
         curr_i = 0
-        training_err = 0
-        validation_err = 0
+        tr_err_pen = 0
+        vl_err = 0
         min_tr_err = sys.float_info.max
         min_vl_err = sys.float_info.max
 
-        while it < epochs:
+        while curr_epoch < epochs:
 
-            # train
-            for _ in range(batch_size):
-                x, d = tr.get_data(curr_i)
-                x = x.reshape(x.shape[0], 1)
-                d = d.reshape(d.shape[0], 1)
-                y = self.__feedforward(x.T)
-                self.backpropagation(d.T)
-                curr_i = (curr_i + 1) % tr.size
+            n_batch = int(n_samples / batch_size)
+            for _ in range(n_batch):
+                tr_err = 0
+                vl_err = 0
+                ts_err = 0
+
+                # train
+                for _ in range(batch_size):
+                    x = X_train[curr_i].reshape(1, X_train.shape[1])
+                    d = Y_train[curr_i].reshape(1, Y_train.shape[1])
+                    y = self.__feedforward(x)
+                    self.backpropagation(d.T)
+                    curr_i = (curr_i + 1) % n_samples
 
             # compute error in training set
-            err, metric = self.evaluate_dataset(tr)
-            err = err
+            tr_err, tr_metric = self.evaluate(X_train, Y_train)
 
-            self.history[self.loss.name].append(err)
-            self.history[self.metric.name].append(metric)
+            self.history[self.loss.name].append(tr_err)
+            self.history[self.metric.name].append(tr_metric)
 
-            tot_weights = self.sum_square_weights(tr.size)
+            tr_err_pen = tr_err + (self.l2 * self.sum_square_weights(batch_size))
 
-            training_err = err + (self.l2 * tot_weights)
-
-            min_tr_err = min(min_tr_err, training_err)
+            min_tr_err = min(min_tr_err, tr_err_pen)
 
             # compute error in validation set
             if vl is not None:
-                err, metric = self.evaluate_dataset(vl)
-                self.history["val_" + self.loss.name].append(err)
-                self.history["val_" + self.metric.name].append(metric)
-                validation_err = err
+                vl_err, vl_metric = self.evaluate(X_val, Y_val)
+                self.history["val_" + self.loss.name].append(vl_err)
+                self.history["val_" + self.metric.name].append(vl_metric)
             else:   # if there is no validation set it uses the training for the early stopping
-                validation_err = training_err
+                vl_err = tr_err_pen
 
             # generalization loss
-            gl = 100 * ((validation_err / min_vl_err) - 1)
+            gl = 100 * ((vl_err / min_vl_err) - 1)
 
-            min_vl_err = min(min_vl_err, validation_err)
+            min_vl_err = min(min_vl_err, vl_err)
 
-            it += 1
+            curr_epoch += 1
 
             # compute error in test set
             if ts is not None:
-                err, metric = self.evaluate_dataset(ts)
-                self.history["test_" + self.loss.name].append(err)
-                self.history["test_" + self.metric.name].append(metric)
+                ts_err, ts_metric = self.evaluate(X_test, Y_test)
+                self.history["test_" + self.loss.name].append(ts_err)
+                self.history["test_" + self.metric.name].append(ts_metric)
 
             self.update_weights(batch_size)
 
             if verbose:
                 print(
-                    "It {:6d}: tr_err (with penality term): {:.6f},\t vl_err: {:.6f},\t gl: {:.6f}".format(it, training_err, validation_err, gl),
+                    "It {:6d}: tr_err (with penality term): {:.6f},"
+                    "\t tr_err (without penality term): {:.6f}"
+                    "\t vl_err: {:.6f},".format(
+                        curr_epoch,
+                        tr_err_pen,
+                        tr_err,
+                        self.history[self.loss.name][-1]),
                     end='\r'
                 )
 
             if tol is None:
-                if gl > 0.2 and training_err - min_tr_err > 0:
+                if gl > 0.2 and tr_err_pen - min_tr_err > 0:
                     break
             else:
-                if training_err < tol:
+                if tr_err_pen < tol:
                     break
 
-        self.history["epochs"] = list(range(it))
+        self.history["epochs"] = list(range(curr_epoch))
 
         if verbose:
             print()
-            print("Exit at epoch: {}".format(it))
+            print("Exit at epoch: {}".format(curr_epoch))
 
             print("{} training set: {:.6f}".format(self.loss.name, self.history[self.loss.name][-1]))
             if vl is not None:
@@ -266,17 +254,18 @@ class NeuralNetwork:
                 if ts is not None:
                     print("{} accuracy test set: {:.6f}".format(self.metric.name, self.history["test_" + self.metric.name][-1]))
 
-        return validation_err
+        return vl_err
 
     def sum_square_weights(self, size):
         """
 
         @param size: dimension of the batch
+
         It's used to regularization
         """
         sum = 0
         for layer in self.layers:
-            sum += np.linalg.norm(layer.w) ** 2
+            sum += np.sum(layer.w ** 2)
         return sum / (2 * size)
 
     def plot_loss(self, val=False, test=False, show=True, path=None):
