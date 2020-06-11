@@ -17,7 +17,7 @@ PARAM_GRID = {
         'eta': list(np.linspace(0.1, 0.9, 9).round(2)),
         'hidden_nodes': list(np.linspace(2, 4, 3, dtype=np.uint8))
     }
-    
+
 def print_hyperparams(hyperperams):
     for k, v in hyperperams.items():
         print("\t{:20}: {:10}".format(k, v))
@@ -66,16 +66,18 @@ def grid_search(
     pool = multiprocessing.Pool(processes=n_threads)
     results = multiprocessing.Manager().list()
 
-    for 
-    # for i in range(max_evals):
-    #     hyperaparams = {k: random.sample(v, 1)[0]
-    #                     for k, v in param_grid.items()}
-    #     model = create_model(hyperaparams)
-    #     pool.apply_async(
-    #         func=run,
-    #         args=(model, tr, vl, ts, results, verbose, tol,
-    #               epochs, batch_size, hyperaparams, monitor_value)
-    #     )
+    # for key in param_grid.keys:
+    #     for v in param_grid[key].items():
+
+    for i in range(max_evals):
+        hyperaparams = {k: random.sample(v, 1)[0]
+                        for k, v in param_grid.items()}
+        model = create_model(hyperaparams)
+        pool.apply_async(
+            func=run,
+            args=(model, tr, vl, ts, results, verbose, tol,
+                  epochs, batch_size, hyperaparams, monitor_value)
+        )
 
     if verbose:
         print('[+] All threads are loaded')
