@@ -12,7 +12,7 @@ set_style_plot()
 PARAM_GRID = {
     'alpha': list(np.linspace(0.1, 0.9, 9).round(2)),
     'eta': list(np.linspace(0.1, 0.9, 9).round(2)),
-    'hidden_nodes': list(np.linspace(2, 4, 3, dtype=np.uint8))
+    'hidden_nodes': list(np.linspace(3, 4, 2, dtype=np.uint8))
 }
 
 

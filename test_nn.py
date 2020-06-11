@@ -42,7 +42,7 @@ model = NeuralNetwork('mse', 'accuracy1-1')
 model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=XavierNormalInitialization())
 model.add_output_layer(dim_out, activation='tanh', kernel_initialization=XavierUniformInitialization())
 
-model.compile(0.5, 0.2, 0.08)
+model.compile(0.5)
 model.fit(X_train, Y_train, 500, X_train.shape[0], ts=(X_test, Y_test), verbose=True, tol=1e-2)
 
 model.plot_loss(val=False, test=True, show=True)

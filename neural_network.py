@@ -121,12 +121,13 @@ class NeuralNetwork:
     def update_weights(self, batch_size):
         """
 
-        @return: update the parameters of the model
+        @param batch_size: size of the batch
+        update the parameters of the model
         """
         for layer in self.layers:
             layer.update_weights(self.lr, self.momentum, self.l2, batch_size)
 
-    def fit(self, X_train, Y_train, epochs, batch_size, vl=None, ts=None, tol=None, verbose=False):
+    def fit(self, X_train, Y_train, epochs, batch_size, vl=None, ts=None, tol=None, shuffle=False, verbose=False):
         """
 
         @param X_train: training samples
@@ -137,6 +138,8 @@ class NeuralNetwork:
         @param ts: pair (test samples, test targets) (used only for plot)
         @param tol: tolerance on the training set
                     if null => It uses an early stopping method
+        @param shuffle: True if you want shuffle training data (at each epoch),
+                        False otherwise
         @param verbose: used to print some informations
         @return: error on the validation set (if it's not None) otherwise error on the training set
         """
@@ -169,6 +172,11 @@ class NeuralNetwork:
 
         while curr_epoch < epochs:
 
+            if shuffle:
+                idx = np.random.permutation(n_samples)
+                X_train = X_train[idx]
+                Y_train = Y_train[idx]
+
             for nb in range(n_batch):
                 loc_err = 0
                 loc_metric = 0
@@ -183,7 +191,7 @@ class NeuralNetwork:
                     curr_i = (curr_i + 1) % n_samples
 
                 tr_loss_batch[nb] = loc_err / batch_size
-                tr_lossr_batch[nb] = tr_loss_batch[nb] + (self.l2 * self.sum_square_weights(batch_size))
+                tr_lossr_batch[nb] = tr_loss_batch[nb] + (self.l2/batch_size * self.sum_square_weights())
                 tr_metric_batch[nb] = loc_metric / batch_size
 
                 self.update_weights(batch_size)
@@ -264,7 +272,7 @@ class NeuralNetwork:
 
         return vl_err
 
-    def sum_square_weights(self, size):
+    def sum_square_weights(self):
         """
 
         @param size: dimension of the batch
@@ -273,8 +281,8 @@ class NeuralNetwork:
         """
         sum = 0
         for layer in self.layers:
-            sum += np.sum(layer.w ** 2)
-        return sum / (2 * size)
+            sum += np.sum(np.square(layer.w))
+        return sum
 
     def plot_loss(self, val=False, test=False, show=True, path=None):
         epochs = self.history['epochs']
