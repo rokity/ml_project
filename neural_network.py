@@ -286,10 +286,13 @@ class NeuralNetwork:
         if test:
             plt.plot(epochs, self.history["test_" + self.loss.name], 'b-.', label="Test")
         plt.legend()
+        if path is not None:
+            plt.draw()
+            plt.savefig(path)
         if show:
             plt.show()
-        if path is not None:
-            plt.savefig(path)
+        plt.close()
+        
 
     def plot_metric(self, val=False, test=False, show=True, path=None):
         epochs = self.history['epochs']
@@ -301,7 +304,10 @@ class NeuralNetwork:
         if test:
             plt.plot(epochs, self.history["test_" + self.metric.name], 'b-.', label="Test")
         plt.legend()
+        if path is not None:
+            plt.draw()
+            plt.savefig(path)
         if show:
             plt.show()
-        if path is not None:
-            plt.savefig(path)
+        plt.close()
+        
