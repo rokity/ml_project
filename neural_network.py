@@ -162,29 +162,39 @@ class NeuralNetwork:
         min_tr_err = sys.float_info.max
         min_vl_err = sys.float_info.max
 
+        n_batch = int(n_samples / batch_size)
+        tr_loss_batch = np.zeros(n_batch)
+        tr_lossr_batch = np.zeros(n_batch)
+        tr_metric_batch = np.zeros(n_batch)
+
         while curr_epoch < epochs:
 
-            n_batch = int(n_samples / batch_size)
-            for _ in range(n_batch):
-                tr_err = 0
-                vl_err = 0
-                ts_err = 0
+            for nb in range(n_batch):
+                loc_err = 0
+                loc_metric = 0
 
-                # train
                 for _ in range(batch_size):
                     x = X_train[curr_i].reshape(1, X_train.shape[1])
                     d = Y_train[curr_i].reshape(1, Y_train.shape[1])
                     y = self.__feedforward(x)
                     self.backpropagation(d.T)
+                    loc_err += self.loss.compute_fun(d.T, y)
+                    loc_metric += self.metric.compute_fun(d.T, y)
                     curr_i = (curr_i + 1) % n_samples
 
-            # compute error in training set
-            tr_err, tr_metric = self.evaluate(X_train, Y_train)
+                tr_loss_batch[nb] = loc_err / batch_size
+                tr_lossr_batch[nb] = tr_loss_batch[nb] + (self.l2 * self.sum_square_weights(batch_size))
+                tr_metric_batch[nb] = loc_metric / batch_size
+
+                self.update_weights(batch_size)
+
+            # compute average loss/metric in training set
+            tr_err = np.mean(tr_loss_batch)
+            tr_err_pen = np.mean(tr_lossr_batch)
+            tr_metric = np.mean(tr_metric_batch)
 
             self.history[self.loss.name].append(tr_err)
             self.history[self.metric.name].append(tr_metric)
-
-            tr_err_pen = tr_err + (self.l2 * self.sum_square_weights(batch_size))
 
             min_tr_err = min(min_tr_err, tr_err_pen)
 
@@ -208,8 +218,6 @@ class NeuralNetwork:
                 ts_err, ts_metric = self.evaluate(X_test, Y_test)
                 self.history["test_" + self.loss.name].append(ts_err)
                 self.history["test_" + self.metric.name].append(ts_metric)
-
-            self.update_weights(batch_size)
 
             if verbose:
                 print(

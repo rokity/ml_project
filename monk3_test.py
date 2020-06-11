@@ -10,10 +10,10 @@ from utility import write_results
 set_style_plot()
 
 PARAM_GRID = {
-    'alpha': list(np.linspace(0.1, 1, 10).round(2)),
-    'eta': list(np.linspace(0.1, 1, 10).round(2)),
-    'lambda': list(np.linspace(0.01, 0.1, 10)),
-    'hidden_nodes': list(np.linspace(2, 4, 3, dtype=np.uint8))
+    'alpha': list(np.linspace(0.1, 0.9, 9).round(2)),
+    'eta': list(np.linspace(0.1, 0.9, 9).round(2)),
+    'lambda': list(np.linspace(0.01, 0.1, 10).round(3)),
+    'hidden_nodes': list([3])
 }
 
 
@@ -23,8 +23,8 @@ def create_model(hyperparams):
     dim_hid = int(hyperparams['hidden_nodes'])
 
     model = NeuralNetwork(loss='mse', metric='accuracy1-1')
-    model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=RandomUniformInitialization())
-    model.add_output_layer(dim_out, activation='tanh', kernel_initialization=GlorotBengioInitialization(dim_hid))
+    model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=XavierNormalInitialization())
+    model.add_output_layer(dim_out, activation='tanh', kernel_initialization=XavierUniformInitialization())
 
     model.compile(lr, mom)
 
@@ -55,15 +55,14 @@ model = random_search(
     create_model,
     (X_train, Y_train),
     (X_train, Y_train),
-    20,
+    500,
     X_train.shape[0],
     param_grid=PARAM_GRID,
     monitor_value='mse',
     ts=(X_test, Y_test),
-    max_evals=5,
-    n_threads=1,
+    max_evals=30,
     #path_results=path_result_randomsearch,
-    tol=1e-3,
+    tol=1e-2,
     verbose=True
 )
 

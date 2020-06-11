@@ -16,7 +16,7 @@ class RandomInitialization(AbstractKernelInitialization):
 
 
 class RandomNormalInitialization(AbstractKernelInitialization):
-    def __init__(self, mean=0.0, std=1.0):
+    def __init__(self, mean=0.0, std=0.05):
         self.mean = mean
         self.std = std
 
@@ -25,7 +25,7 @@ class RandomNormalInitialization(AbstractKernelInitialization):
 
 
 class RandomUniformInitialization(AbstractKernelInitialization):
-    def __init__(self, low=0.0, high=1.0):
+    def __init__(self, low=-0.05, high=0.05):
         self.low = low
         self.high = high
 
@@ -41,20 +41,22 @@ class HeInitialization(AbstractKernelInitialization):
         return np.random.randn(dim_in, dim_out) * np.sqrt(2/self.size_l)
 
 
-class XavierInitialization(AbstractKernelInitialization):
-    def __init__(self, size_l):
-        self.size_l = size_l
+class XavierUniformInitialization(AbstractKernelInitialization):
+    def __init__(self):
+        pass
 
     def initialize(self, dim_in, dim_out):
-        return np.random.randn(dim_in, dim_out) * np.sqrt(1/self.size_l)
+        limit = np.sqrt(6/(dim_in + dim_out))
+        return np.random.uniform(-limit, limit, (dim_in, dim_out))
 
 
-class GlorotBengioInitialization(AbstractKernelInitialization):
-    def __init__(self, size_l):
-        self.size_l = size_l
+class XavierNormalInitialization(AbstractKernelInitialization):
+    def __init__(self):
+        pass
 
     def initialize(self, dim_in, dim_out):
-        return np.random.uniform(-np.sqrt(1/self.size_l), np.sqrt(1/self.size_l), (dim_in, dim_out))
+        std = np.sqrt(2/(dim_in + dim_out))
+        return np.random.normal(0, std, (dim_in, dim_out))
 
 
 class ZerosInitialization(AbstractKernelInitialization):
