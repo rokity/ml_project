@@ -191,7 +191,7 @@ class NeuralNetwork:
                     curr_i = (curr_i + 1) % n_samples
 
                 tr_loss_batch[nb] = loc_err / batch_size
-                tr_lossr_batch[nb] = tr_loss_batch[nb] + (self.l2/batch_size * self.sum_square_weights())
+                tr_lossr_batch[nb] = (loc_err + self.l2 * self.sum_square_weights()) / batch_size
                 tr_metric_batch[nb] = loc_metric / batch_size
 
                 self.update_weights(batch_size)
