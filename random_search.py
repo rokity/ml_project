@@ -28,21 +28,21 @@ def write_csv(l_results, path, hyps_name, monitor_value):
 
     for (val, hyps, _) in l_results:
         for k, v in hyps.items():
-            res[k].append(v)
+            res[k].append(str(v))
         res[monitor_value].append(val)
 
     results = pd.DataFrame(res)
     results.to_csv(path, index=False)
 
 
-def run(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperparams, monitor_value):
+def run(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperparams, monitor_value, shuffle):
     """
     executes one evaluation with a fixed set of hyperparameters
 
     @return: validation error on the monitor_value
     """
     X_train, Y_train = tr
-    model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, vl=vl, ts=ts, verbose=False, tol=tol)
+    model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, vl=vl, ts=ts, verbose=False, tol=tol, shuffle=shuffle)
     val = model.history[monitor_value][-1]
     results.append((val, hyperparams, model))
     if verbose:
@@ -58,7 +58,7 @@ def random_search(
         batch_size,
         param_grid,
         monitor_value='val_loss',
-        ts=None, max_evals=10, path_results=None, n_threads=None, tol=None, verbose=False
+        ts=None, max_evals=10, path_results=None, n_threads=None, tol=None, verbose=False, shuffle=False
     ):
     """
 
@@ -75,6 +75,8 @@ def random_search(
     @param n_threads: number of threads
     @param tol: tolerance
     @param verbose: used for debug
+    @param shuffle: True if you want shuffle training data (at each epoch),
+                    False otherwise
     @return: best model under the monitor_value criterion
     """
     print('[+] Random search is started')
@@ -89,7 +91,7 @@ def random_search(
         model = create_model(hyperaparams)
         pool.apply_async(
             func=run,
-            args=(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperaparams, monitor_value)
+            args=(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperaparams, monitor_value, shuffle)
         )
 
     if verbose:

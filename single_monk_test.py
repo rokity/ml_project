@@ -8,13 +8,6 @@ from utility import write_results
 
 set_style_plot()
 
-PARAM_GRID = {
-    'alpha': list(np.linspace(0.1, 1, 10).round(2)),
-    'eta': list(np.linspace(0.1, 1, 10).round(2)),
-    'hidden_nodes': list(np.linspace(2, 4, 3, dtype=np.uint8))
-}
-
-
 DIR_DATA = "/home/fabsam/Documenti/masterDegree/ML/ml_project/data/monks/"
 TR_FILE = 'monks-3.train'
 TS_FILE = 'monks-3.test'
@@ -42,7 +35,7 @@ model = NeuralNetwork('mse', 'accuracy1-1')
 model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=XavierNormalInitialization())
 model.add_output_layer(dim_out, activation='tanh', kernel_initialization=XavierUniformInitialization())
 
-model.compile(0.5)
+model.compile(0.2, 0.1, 0.1)
 model.fit(X_train, Y_train, 500, X_train.shape[0], ts=(X_test, Y_test), verbose=True, tol=1e-2)
 
 model.plot_loss(val=False, test=True, show=True)

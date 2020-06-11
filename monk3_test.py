@@ -12,7 +12,7 @@ set_style_plot()
 PARAM_GRID = {
     'alpha': list(np.linspace(0.1, 0.9, 9).round(2)),
     'eta': list(np.linspace(0.1, 0.9, 9).round(2)),
-    'lambda': list(np.linspace(0.01, 0.1, 10).round(3)),
+    'lambda': list(np.linspace(0.001, 0.009, 9).round(3)),
     'hidden_nodes': list([3])
 }
 
@@ -20,13 +20,15 @@ PARAM_GRID = {
 def create_model(hyperparams):
     lr = hyperparams['eta']
     mom = hyperparams['alpha']
+    l2 = hyperparams['lambda']
     dim_hid = int(hyperparams['hidden_nodes'])
+
 
     model = NeuralNetwork(loss='mse', metric='accuracy1-1')
     model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=XavierNormalInitialization())
     model.add_output_layer(dim_out, activation='tanh', kernel_initialization=XavierUniformInitialization())
 
-    model.compile(lr, mom)
+    model.compile(lr, mom, l2)
 
     return model
 
