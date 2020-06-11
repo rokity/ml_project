@@ -1,6 +1,6 @@
 from neural_network import NeuralNetwork
 from parser import Monks_parser
-from utility import set_style_plot
+from utility import set_style_plot, train_test_split
 import utility
 from kernel_initialization import *
 from random_search import random_search
@@ -49,16 +49,18 @@ X_train, Y_train, X_test, Y_test = parser.parse(dim_in, dim_out, one_hot)
 Y_train = utility.change_output_value(Y_train, 0, -1)
 Y_test = utility.change_output_value(Y_test, 0, -1)
 
+X_train, Y_train, X_val, Y_val = train_test_split(X_train, Y_train, test_size=0.25)
+
 dim_in = one_hot
 
 model = random_search(
     create_model,
     (X_train, Y_train),
-    (X_train, Y_train),
+    (X_val, Y_val),
     500,
     X_train.shape[0],
     param_grid=PARAM_GRID,
-    monitor_value='mse',
+    monitor_value='val_mse',
     ts=(X_test, Y_test),
     max_evals=30,
     #path_results=path_result_randomsearch,

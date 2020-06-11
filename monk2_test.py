@@ -12,7 +12,7 @@ set_style_plot()
 PARAM_GRID = {
     'alpha': list(np.linspace(0.1, 0.9, 9).round(2)),
     'eta': list(np.linspace(0.1, 0.9, 9).round(2)),
-    'hidden_nodes': list(np.linspace(2, 4, 3, dtype=np.uint8))
+    'hidden_nodes': list(np.linspace(2, 3, 2, dtype=np.uint8))
 }
 
 
@@ -54,7 +54,7 @@ model = random_search(
     create_model,
     (X_train, Y_train),
     (X_train, Y_train),
-    500,
+    300,
     X_train.shape[0],
     param_grid=PARAM_GRID,
     monitor_value='mse',

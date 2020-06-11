@@ -18,11 +18,11 @@ X_train, Y_train, X_val, Y_val, X_test, Y_test = train_val_test_split(data, targ
 
 model = NeuralNetwork('mse', 'mee')
 
-model.add_layer(40, input_dim=X_train.shape[1], activation='relu', kernel_initialization=RandomInitialization())
+model.add_layer(40, input_dim=X_train.shape[1], activation='sigmoid', kernel_initialization=XavierUniformInitialization())
 model.add_output_layer(Y_train.shape[1], activation='linear', kernel_initialization=RandomInitialization())
 
-model.compile(lr=1e-3, momentum=0.5)
+model.compile(lr=0.001, momentum=0.5, l2=0.0)
 
-model.fit(X_train, Y_train, 100, batch_size=1, vl=(X_val, Y_val), ts=(X_test, Y_test), tol=1e-2, verbose=True)
+model.fit(X_train, Y_train, 500, batch_size=128, vl=(X_val, Y_val), ts=(X_test, Y_test), shuffle=True, tol=1e-2, verbose=True)
 model.plot_loss(val=True, test=True)
 model.plot_metric(val=True, test=True)

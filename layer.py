@@ -64,6 +64,7 @@ class Layer:
         """
         partial = loc_grad * self.f_act.compute_der(self.v)
         self.delta_w += np.dot(partial, self.x.T)
+        self.delta_b += partial
         return np.dot(self.w.T, partial)
 
     def update_weights(self, lr, momentum, l2, batch_size):
@@ -78,7 +79,7 @@ class Layer:
         self.delta_w = momentum*self.prev_delta_w + (1-momentum)*self.delta_w
         self.delta_b = momentum*self.prev_delta_b + (1-momentum)*self.delta_b
         self.w -= (lr/batch_size)*self.delta_w
-        self.w -= l2*self.w
+        self.w -= l2*2*self.w
         self.b -= (lr/batch_size)*self.delta_b
         self.prev_delta_w = self.delta_w.copy()
         self.prev_delta_b = self.delta_b.copy()
@@ -116,4 +117,5 @@ class OutputLayer(Layer):
 
         partial = self.loss.compute_der(d, self.y)*self.f_act.compute_der(self.v)
         self.delta_w += np.dot(partial, self.x.T)
+        self.delta_b += partial
         return np.dot(self.w.T, partial)
