@@ -3,7 +3,6 @@ from parser import Monks_parser
 from utility import set_style_plot
 import utility
 from kernel_initialization import *
-from random_search import random_search
 from utility import write_results
 from utility import write_results
 
@@ -36,14 +35,14 @@ Y_train = utility.change_output_value(Y_train, 0, -1)
 Y_test = utility.change_output_value(Y_test, 0, -1)
 
 dim_in = one_hot
-dim_hid = 3
+dim_hid = 2
 
-model = NeuralNetwork('mse', 'accuracy')
+model = NeuralNetwork('mse', 'accuracy1-1')
 
-model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=RandomNormalInitialization())
-model.add_output_layer(dim_out, activation='tanh', kernel_initialization=GlorotBengioInitialization(dim_hid))
+model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=XavierNormalInitialization())
+model.add_output_layer(dim_out, activation='tanh', kernel_initialization=XavierUniformInitialization())
 
-model.compile(0.3, 0.8, 0.001)
+model.compile(0.5, 0.2, 0.08)
 model.fit(X_train, Y_train, 500, X_train.shape[0], ts=(X_test, Y_test), verbose=True, tol=1e-2)
 
 model.plot_loss(val=False, test=True, show=True)

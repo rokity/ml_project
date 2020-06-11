@@ -22,8 +22,8 @@ def create_model(hyperparams):
     dim_hid = int(hyperparams['hidden_nodes'])
 
     model = NeuralNetwork(loss='mse', metric='accuracy1-1')
-    model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=RandomUniformInitialization())
-    model.add_output_layer(dim_out, activation='tanh', kernel_initialization=GlorotBengioInitialization(dim_hid))
+    model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=XavierNormalInitialization())
+    model.add_output_layer(dim_out, activation='tanh', kernel_initialization=XavierUniformInitialization())
 
     model.compile(lr, mom)
 
@@ -60,7 +60,6 @@ model = random_search(
     monitor_value='mse',
     ts=(X_test, Y_test),
     max_evals=10,
-    n_threads=1,
     #path_results=path_result_randomsearch,
     tol=1e-3,
     verbose=True

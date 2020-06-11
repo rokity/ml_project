@@ -10,7 +10,7 @@ def print_hyperparams(hyperperams):
     @param hyperperams: hyperparameters
     """
     for k, v in hyperperams.items():
-        print("\t{:20}: {:10}".format(k, v))
+        print("\t{:20}: {:10}".format(k, str(v)))
 
 
 def write_csv(l_results, path, hyps_name, monitor_value):

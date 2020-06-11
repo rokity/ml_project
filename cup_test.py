@@ -10,7 +10,7 @@ INPUT_DIM = 20
 OUTPUT_DIM = 2
 
 PERC_VL = 0.25
-PERC_TS = 0.20
+PERC_TS = 0.25
 
 parser = Cup_parser(DIR_CUP + PATH_TR)
 data, targets = parser.parse(INPUT_DIM, OUTPUT_DIM)
@@ -18,11 +18,11 @@ X_train, Y_train, X_val, Y_val, X_test, Y_test = train_val_test_split(data, targ
 
 model = NeuralNetwork('mse', 'mee')
 
-model.add_layer(15, input_dim=X_train.shape[1], activation='sigmoid', kernel_initialization=RandomUniformInitialization())
-model.add_output_layer(Y_train.shape[1], activation='linear', kernel_initialization=RandomUniformInitialization())
+model.add_layer(40, input_dim=X_train.shape[1], activation='relu', kernel_initialization=RandomInitialization())
+model.add_output_layer(Y_train.shape[1], activation='linear', kernel_initialization=RandomInitialization())
 
-model.compile(lr=0.02, momentum=0.5, l2=0.01)
+model.compile(lr=1e-3, momentum=0.5)
 
-model.fit(X_train, Y_train, 1000, X_train.shape[0], vl=(X_val, Y_val), ts=(X_test, Y_test), tol=1e-2, verbose=True)
+model.fit(X_train, Y_train, 100, batch_size=1, vl=(X_val, Y_val), ts=(X_test, Y_test), tol=1e-2, verbose=True)
 model.plot_loss(val=True, test=True)
 model.plot_metric(val=True, test=True)

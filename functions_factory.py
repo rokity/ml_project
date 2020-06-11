@@ -73,7 +73,7 @@ def reLU_der(x):
 # ----------------- Loss functions -----------------
 
 def mse(d, y):
-    return np.linalg.norm(d-y)**2
+    return np.sum(np.square(d-y))
 
 
 def mse_der(d, y):
@@ -97,4 +97,4 @@ def accuracy1(d, y):
 
 
 def mee(d, y):
-    return np.linalg.norm(d - y)
+    return np.sqrt(np.sum(np.square(d-y)))
