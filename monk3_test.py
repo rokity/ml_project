@@ -23,7 +23,6 @@ def create_model(hyperparams):
     l2 = hyperparams['lambda']
     dim_hid = int(hyperparams['hidden_nodes'])
 
-
     model = NeuralNetwork(loss='mse', metric='accuracy1-1')
     model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=XavierNormalInitialization())
     model.add_output_layer(dim_out, activation='tanh', kernel_initialization=XavierUniformInitialization())
@@ -36,8 +35,8 @@ def create_model(hyperparams):
 path_tr = 'data/monks/monks-3.train'
 path_ts = 'data/monks/monks-3.test'
 path_result_randomsearch = 'out/monks/monk3/randomsearch.csv'
-path_loss = 'out/monks/monk1/err_monk3'
-path_acc = 'out/monks/monk1/acc_monk3'
+path_loss = 'out/monks/monk3/err_monk3'
+path_acc = 'out/monks/monk3/acc_monk3'
 path_result_bestmodel = 'out/monks/monk3/results.csv'
 
 dim_in = 6
@@ -51,7 +50,7 @@ X_train, Y_train, X_test, Y_test = parser.parse(dim_in, dim_out, one_hot)
 Y_train = utility.change_output_value(Y_train, 0, -1)
 Y_test = utility.change_output_value(Y_test, 0, -1)
 
-X_train, Y_train, X_val, Y_val = train_test_split(X_train, Y_train, test_size=0.25)
+X_train, Y_train, X_val, Y_val = train_test_split(X_train, Y_train, test_size=0.25, shuffle=True)
 
 dim_in = one_hot
 
@@ -66,16 +65,19 @@ model = random_search(
     ts=(X_test, Y_test),
     max_evals=30,
     path_results=path_result_randomsearch,
-    tol=1e-2,
+    tol=1e-3,
     verbose=True
 )
 
 loss_tr, acc_tr = model.evaluate(X_train, Y_train)
+loss_vl, acc_vl = model.evaluate(X_val, Y_val)
 loss_ts, acc_ts = model.evaluate(X_test, Y_test)
+
 acc_tr = acc_tr*100
+acc_vl = acc_vl*100
 acc_ts = acc_ts*100
-losses = [loss_tr, loss_ts]
-accuracy = [acc_tr, acc_ts]
+losses = [loss_tr, loss_vl, loss_ts]
+accuracy = [acc_tr, acc_vl, acc_ts]
 
 res = {
     'mse': losses,
@@ -85,7 +87,7 @@ res = {
 write_results(
     res, model,
     save_plot_loss=path_loss, save_plot_metric=path_acc, save_result=path_result_bestmodel,
-    validation=False,
+    validation=True,
     test=True,
     show=True
 )
