@@ -1,10 +1,9 @@
 from neural_network import NeuralNetwork
 from parser import Monks_parser
 from utility import set_style_plot
-import utility
+from utility import *
+from early_stopping import *
 from kernel_initialization import *
-from utility import write_results
-from utility import write_results
 
 set_style_plot()
 
@@ -24,8 +23,10 @@ parser = Monks_parser(path_tr, path_ts)
 
 X_train, Y_train, X_test, Y_test = parser.parse(dim_in, dim_out, one_hot)
 
-Y_train = utility.change_output_value(Y_train, 0, -1)
-Y_test = utility.change_output_value(Y_test, 0, -1)
+Y_train = change_output_value(Y_train, 0, -1)
+Y_test = change_output_value(Y_test, 0, -1)
+
+X_train, Y_train, X_val, Y_val = train_test_split(X_train, Y_train, test_size=0.25)
 
 dim_in = one_hot
 dim_hid = 2
@@ -35,11 +36,14 @@ model = NeuralNetwork('mse', 'accuracy1-1')
 model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=XavierNormalInitialization())
 model.add_output_layer(dim_out, activation='tanh', kernel_initialization=XavierUniformInitialization())
 
-model.compile(0.2, 0.1, 0.1)
-model.fit(X_train, Y_train, 500, X_train.shape[0], ts=(X_test, Y_test), verbose=True, tol=1e-2)
+model.compile(0.5, 0.7, 0.01)
+model.fit(
+    X_train, Y_train, 1000, X_train.shape[0], vl=(X_val, Y_val), ts=(X_test, Y_test),
+    verbose=True, tol=1e-2, early_stopping=PQ('val_mse', 'mse', verbose=True)
+)
 
-model.plot_loss(val=False, test=True, show=True)
-model.plot_metric(val=False, test=True, show=True)
+model.plot_loss(val=True, test=True, show=True)
+model.plot_metric(val=True, test=True, show=True)
 
 err_tr, acc_tr = model.evaluate(X_train, Y_train)
 err_ts, acc_ts = model.evaluate(X_test, Y_test)

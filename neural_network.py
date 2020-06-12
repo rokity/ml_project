@@ -236,7 +236,7 @@ class NeuralNetwork:
                     end = True
 
             if early_stopping is not None:
-                if early_stopping.early_stopping_check(self.history[early_stopping.get_metric()][-1]):
+                if early_stopping.early_stopping_check(self.history):
                     end = True
 
         self.history["epochs"] = list(range(curr_epoch))
@@ -286,14 +286,13 @@ class NeuralNetwork:
             plt.plot(epochs, self.history["val_" + self.loss.name], 'g--', label="Validation")
         if test:
             plt.plot(epochs, self.history["test_" + self.loss.name], 'b-.', label="Test")
-        plt.legend()
+        plt.legend(fontsize=20)
         if path is not None:
             plt.draw()
             plt.savefig(path)
         if show:
             plt.show()
         plt.close()
-        
 
     def plot_metric(self, val=False, test=False, show=True, path=None):
         epochs = self.history['epochs']
@@ -304,7 +303,7 @@ class NeuralNetwork:
             plt.plot(epochs, self.history["val_" + self.metric.name], 'g--', label="Validation")
         if test:
             plt.plot(epochs, self.history["test_" + self.metric.name], 'b-.', label="Test")
-        plt.legend()
+        plt.legend(fontsize=20)
         if path is not None:
             plt.draw()
             plt.savefig(path)
