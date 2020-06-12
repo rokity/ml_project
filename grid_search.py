@@ -1,22 +1,15 @@
 from neural_network import NeuralNetwork
 from parser import Monks_parser
-from  utility import set_style_plot
+from utility import set_style_plot
 from kernel_initialization import *
 from utility import write_results
 from utility import change_output_value
-import pandas as pd
-import numpy as np
 import multiprocessing
 import random
 import pandas as pd
 
 set_style_plot()
 
-PARAM_GRID = {
-        'alpha': list(np.linspace(0.1, 0.9, 9).round(2)),
-        'eta': list(np.linspace(0.1, 0.9, 9).round(2)),
-        'hidden_nodes': list(np.linspace(2, 4, 3, dtype=np.uint8))
-    }
 
 def print_hyperparams(hyperperams):
     for k, v in hyperperams.items():

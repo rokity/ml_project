@@ -78,9 +78,10 @@ class Layer:
 
         self.delta_w = momentum*self.prev_delta_w + (1-momentum)*self.delta_w + l2*2*self.w
         self.delta_b = momentum*self.prev_delta_b + (1-momentum)*self.delta_b
+
         self.w -= (lr/batch_size)*self.delta_w
-        #self.w -= l2*2*self.w
         self.b -= (lr/batch_size)*self.delta_b
+
         self.prev_delta_w = self.delta_w.copy()
         self.prev_delta_b = self.delta_b.copy()
         self.delta_w = np.zeros(self.w.shape)

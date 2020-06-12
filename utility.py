@@ -3,28 +3,29 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 import numpy as np
 
-#
-def write_results(res, best_model, save=None, all=False):
-    results = pd.DataFrame(res, index=['Training set', 'Test set'])
-    print(results)
-    if save is not None:
-        path_err, path_acc, path_result_bestmodel = save
-        results.to_csv(path_result_bestmodel, index=True)
-        if all:
-            best_model.plot_loss(val=False, test=True,show=False,path=path_err)
-            best_model.plot_metric(val=False, test=True,show=False,path=path_acc)
-    # else:
-    #     best_model.show_trts_err()
-    #     best_model.show_trts_acc()
-    # if save is not None:
-    #     path_err, path_acc, path_result_bestmodel = save
-    #     results.to_csv(path_result_bestmodel, index=True)
-    #     if all:
-    #         best_model.save_all_err(path_err)
-    #         best_model.save_all_acc(path_acc)
-    #     else:
-    #         best_model.save_trts_err(path_err)
-    #         best_model.save_trts_acc(path_acc)
+
+def write_results(
+        res, best_model,
+        save_plot_loss=None, save_plot_metric=None, save_result=None,
+        validation=True,
+        test=True,
+        show=False
+    ):
+
+    if save_plot_loss is not None:
+        best_model.plot_loss(val=validation, test=test, show=show, path=save_plot_loss)
+    if save_plot_metric is not None:
+        best_model.plot_metric(val=validation, test=test, show=show, path=save_plot_metric)
+    if save_result is not None:
+        if validation and test:
+            results = pd.DataFrame(res, index=['Training set', 'Validation set', 'Test set'])
+        elif validation:
+            results = pd.DataFrame(res, index=['Training set', 'Validation set'])
+        elif test:
+            results = pd.DataFrame(res, index=['Training set', 'Test set'])
+        else:
+            results = pd.DataFrame(res, index=['Training set'])
+        results.to_csv(save_result, index=True)
 
 
 def set_style_plot(style='seaborn', fig_size=(12, 10)):

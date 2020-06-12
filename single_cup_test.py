@@ -2,6 +2,7 @@ from parser import Cup_parser
 from utility import *
 from neural_network import NeuralNetwork
 from kernel_initialization import *
+from early_stopping import *
 
 DIR_CUP = './data/cup/'
 PATH_TR = 'ML-CUP19-TR.csv'
@@ -18,11 +19,13 @@ X_train, Y_train, X_val, Y_val, X_test, Y_test = train_val_test_split(data, targ
 
 model = NeuralNetwork('mse', 'mee')
 
-model.add_layer(20, input_dim=X_train.shape[1], activation='sigmoid', kernel_initialization=RandomUniformInitialization())
+model.add_layer(30, input_dim=X_train.shape[1], activation='relu', kernel_initialization=RandomUniformInitialization())
 model.add_output_layer(Y_train.shape[1], activation='linear', kernel_initialization=RandomUniformInitialization())
 
-model.compile(lr=0.01, momentum=0.5)
+model.compile(lr=0.01, momentum=0.5, l2=0.01)
 
-model.fit(X_train, Y_train, 500, batch_size=1, vl=(X_val, Y_val), ts=(X_test, Y_test), shuffle=True, tol=1e-2, verbose=True)
+model.fit(
+    X_train, Y_train, 1000, batch_size=32, vl=(X_val, Y_val), ts=(X_test, Y_test),
+    shuffle=True, tol=1e-2, early_stopping=GL(4, "mse", patience=10, verbose=True), verbose=True)
 model.plot_loss(val=True, test=True)
 model.plot_metric(val=True, test=True)

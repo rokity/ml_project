@@ -1,4 +1,3 @@
-import numpy as np
 import multiprocessing
 import random
 import pandas as pd

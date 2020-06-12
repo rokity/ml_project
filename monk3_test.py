@@ -36,7 +36,7 @@ def create_model(hyperparams):
 path_tr = 'data/monks/monks-3.train'
 path_ts = 'data/monks/monks-3.test'
 path_result_randomsearch = 'out/monks/monk3/randomsearch.csv'
-path_err = 'out/monks/monk1/err_monk3'
+path_loss = 'out/monks/monk1/err_monk3'
 path_acc = 'out/monks/monk1/acc_monk3'
 path_result_bestmodel = 'out/monks/monk3/results.csv'
 
@@ -65,26 +65,27 @@ model = random_search(
     monitor_value='val_mse',
     ts=(X_test, Y_test),
     max_evals=30,
-    #path_results=path_result_randomsearch,
+    path_results=path_result_randomsearch,
     tol=1e-2,
     verbose=True
 )
 
-model.plot_loss(val=False, test=True, show=True)
-model.plot_metric(val=False, test=True, show=True)
-
-err_tr, acc_tr = model.evaluate(X_train, Y_train)
-err_ts, acc_ts = model.evaluate(X_test, Y_test)
+loss_tr, acc_tr = model.evaluate(X_train, Y_train)
+loss_ts, acc_ts = model.evaluate(X_test, Y_test)
 acc_tr = acc_tr*100
 acc_ts = acc_ts*100
-errors = [err_tr, err_ts]
+losses = [loss_tr, loss_ts]
 accuracy = [acc_tr, acc_ts]
 
 res = {
-    'Error': errors,
-    'Accuracy': accuracy,
+    'mse': losses,
+    'accuracy': accuracy,
 }
 
-print(res)
-#save = (path_err, path_acc, path_result_bestmodel)
-#write_results(res, best_model, save=None)
+write_results(
+    res, model,
+    save_plot_loss=path_loss, save_plot_metric=path_acc, save_result=path_result_bestmodel,
+    validation=False,
+    test=True,
+    show=True
+)
