@@ -127,7 +127,7 @@ class NeuralNetwork:
         for layer in self.layers:
             layer.update_weights(self.lr, self.momentum, self.l2, batch_size)
 
-    def fit(self, X_train, Y_train, epochs, batch_size, vl=None, ts=None, tol=None, shuffle=False, verbose=False):
+    def fit(self, X_train, Y_train, epochs, batch_size, vl=None, ts=None, tol=None, shuffle=False, early_stopping=None, verbose=False):
         """
 
         @param X_train: training samples
@@ -140,6 +140,7 @@ class NeuralNetwork:
                     if null => It uses an early stopping method
         @param shuffle: True if you want shuffle training data (at each epoch),
                         False otherwise
+        @param early_stopping: early stopping method
         @param verbose: used to print some informations
         @return: error on the validation set (if it's not None) otherwise error on the training set
         """
@@ -160,17 +161,14 @@ class NeuralNetwork:
         n_samples = X_train.shape[0]
         curr_epoch = 0
         curr_i = 0
-        tr_err_pen = 0
-        vl_err = 0
-        min_tr_err = sys.float_info.max
-        min_vl_err = sys.float_info.max
 
         n_batch = int(n_samples / batch_size)
         tr_loss_batch = np.zeros(n_batch)
         tr_lossr_batch = np.zeros(n_batch)
         tr_metric_batch = np.zeros(n_batch)
+        end = False
 
-        while curr_epoch < epochs:
+        while curr_epoch < epochs and not end:
 
             if shuffle:
                 idx = np.random.permutation(n_samples)
@@ -204,7 +202,6 @@ class NeuralNetwork:
             self.history[self.loss.name].append(tr_err)
             self.history[self.metric.name].append(tr_metric)
 
-            min_tr_err = min(min_tr_err, tr_err_pen)
 
             # compute error in validation set
             if vl is not None:
@@ -213,13 +210,6 @@ class NeuralNetwork:
                 self.history["val_" + self.metric.name].append(vl_metric)
             else:   # if there is no validation set it uses the training for the early stopping
                 vl_err = tr_err_pen
-
-            # generalization loss
-            gl = 100 * ((vl_err / min_vl_err) - 1)
-
-            min_vl_err = min(min_vl_err, vl_err)
-
-            curr_epoch += 1
 
             # compute error in test set
             if ts is not None:
@@ -236,15 +226,18 @@ class NeuralNetwork:
                         tr_err_pen,
                         tr_err,
                         self.history[self.loss.name][-1]),
-                    end='\r'
+                    end='\n'
                 )
 
-            if tol is None:
-                if gl > 0.2 and tr_err_pen - min_tr_err > 0:
-                    break
-            else:
+            curr_epoch += 1
+
+            if tol is not None:
                 if tr_err_pen < tol:
-                    break
+                    end = True
+
+            if early_stopping is not None:
+                if early_stopping.early_stopping_check(self.history[early_stopping.get_metric()][-1]):
+                    end = True
 
         self.history["epochs"] = list(range(curr_epoch))
 
