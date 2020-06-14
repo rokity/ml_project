@@ -15,7 +15,7 @@ OUTPUT_DIM = 2
 
 def build_model():
   model = NeuralNetwork(loss='mse', metric='mee')
-  model.add_layer(60, input_dim=INPUT_DIM, activation='sigmoid',
+  model.add_layer(64, input_dim=INPUT_DIM, activation='sigmoid',
                   kernel_initialization=XavierNormalInitialization())
   model.add_layer(30,  activation='sigmoid',
                   kernel_initialization=XavierNormalInitialization())
