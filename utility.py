@@ -5,17 +5,17 @@ import numpy as np
 
 
 def write_results(
-        res, best_model,
+        res=None, model=None,
         save_plot_loss=None, save_plot_metric=None, save_result=None,
-        validation=True,
-        test=True,
+        validation=False,
+        test=False,
         show=False
     ):
 
     if save_plot_loss is not None:
-        best_model.plot_loss(val=validation, test=test, show=show, path=save_plot_loss)
+        model.plot_loss(val=validation, test=test, show=show, path=save_plot_loss)
     if save_plot_metric is not None:
-        best_model.plot_metric(val=validation, test=test, show=show, path=save_plot_metric)
+        model.plot_metric(val=validation, test=test, show=show, path=save_plot_metric)
     if save_result is not None:
         if validation and test:
             results = pd.DataFrame(res, index=['Training set', 'Validation set', 'Test set'])

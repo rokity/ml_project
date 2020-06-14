@@ -55,32 +55,32 @@ class Layer:
         self.y = self.f_act.compute_fun(self.v)
         return self.y
 
-    def backpropagation(self, loc_grad, d):
+    def backpropagation(self, loc_grad, d, batch_size):
         """
 
         @param loc_grad: gradient of the next layer
         @param d: real output (here not used @see OutputLayer)
+        @param batch_size: size of the batch
         @return: local gradient (to be used in the previous layer)
         """
         partial = loc_grad * self.f_act.compute_der(self.v)
-        self.delta_w += np.dot(partial, self.x.T)
-        self.delta_b += partial
+        self.delta_w += np.dot(partial, self.x.T) / batch_size
+        self.delta_b += partial / batch_size
         return np.dot(self.w.T, partial)
 
-    def update_weights(self, lr, momentum, l2, batch_size):
+    def update_weights(self, lr, momentum, l2):
         """
 
         @param lr: learning rate
         @param momentum: momentum
         @param l2: regularizer
-        @param batch_size: size of the batch
         """
 
         self.delta_w = momentum*self.prev_delta_w + (1-momentum)*self.delta_w + l2*2*self.w
         self.delta_b = momentum*self.prev_delta_b + (1-momentum)*self.delta_b
 
-        self.w -= (lr/batch_size)*self.delta_w
-        self.b -= (lr/batch_size)*self.delta_b
+        self.w -= (lr)*self.delta_w
+        self.b -= (lr)*self.delta_b
 
         self.prev_delta_w = self.delta_w.copy()
         self.prev_delta_b = self.delta_b.copy()
@@ -104,11 +104,12 @@ class Layer:
 
 class OutputLayer(Layer):
 
-    def backpropagation(self, loc_grad, d):
+    def backpropagation(self, loc_grad, d, batch_size):
         """
 
         @param loc_grad: gradient of the next layer
         @param d: real output
+        @param batch_size: size of the batch
         @return: local gradient (to be used in the previous layer)
         """
         '''
@@ -117,6 +118,6 @@ class OutputLayer(Layer):
         '''
 
         partial = self.loss.compute_der(d, self.y)*self.f_act.compute_der(self.v)
-        self.delta_w += np.dot(partial, self.x.T)
-        self.delta_b += partial
+        self.delta_w += np.dot(partial, self.x.T) / batch_size
+        self.delta_b += partial / batch_size
         return np.dot(self.w.T, partial)

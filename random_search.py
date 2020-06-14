@@ -40,6 +40,8 @@ def run(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperparam
 
     @return: validation error on the monitor_value
     """
+    if verbose:
+        print("[+] Start one task")
     X_train, Y_train = tr
     model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, vl=vl, ts=ts, verbose=False, tol=tol, shuffle=shuffle)
     val = model.history[monitor_value][-1]

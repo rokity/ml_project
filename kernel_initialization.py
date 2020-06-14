@@ -3,7 +3,7 @@ import numpy as np
 
 class AbstractKernelInitialization:
 
-    def initialize(self, dim_in, dim_out):
+    def initialize(self, dim_out, dim_in):
         pass
 
 
@@ -11,8 +11,8 @@ class RandomInitialization(AbstractKernelInitialization):
     def __init__(self, trsl=1.0):
         self.trsl = trsl
 
-    def initialize(self, dim_in, dim_out):
-        return np.random.randn(dim_in, dim_out) * self.trsl
+    def initialize(self, dim_out, dim_in):
+        return np.random.randn(dim_out, dim_in) * self.trsl
 
 
 class RandomNormalInitialization(AbstractKernelInitialization):
@@ -20,8 +20,8 @@ class RandomNormalInitialization(AbstractKernelInitialization):
         self.mean = mean
         self.std = std
 
-    def initialize(self, dim_in, dim_out):
-        return np.random.normal(self.mean, self.std, (dim_in, dim_out))
+    def initialize(self, dim_out, dim_in):
+        return np.random.normal(self.mean, self.std, (dim_out, dim_in))
 
 
 class RandomUniformInitialization(AbstractKernelInitialization):
@@ -29,40 +29,40 @@ class RandomUniformInitialization(AbstractKernelInitialization):
         self.low = low
         self.high = high
 
-    def initialize(self, dim_in, dim_out):
-        return np.random.uniform(self.low, self.high, (dim_in, dim_out))
+    def initialize(self, dim_out, dim_in):
+        return np.random.uniform(self.low, self.high, (dim_out, dim_in))
 
 
 class HeInitialization(AbstractKernelInitialization):
-    def __init__(self, size_l):
-        self.size_l = size_l
+    def __init__(self):
+        pass
 
-    def initialize(self, dim_in, dim_out):
-        return np.random.randn(dim_in, dim_out) * np.sqrt(2/self.size_l)
+    def initialize(self, dim_out, dim_in):
+        return np.random.randn(dim_out, dim_in) * np.sqrt(2/dim_in)
 
 
 class XavierUniformInitialization(AbstractKernelInitialization):
     def __init__(self):
         pass
 
-    def initialize(self, dim_in, dim_out):
+    def initialize(self, dim_out, dim_in):
         limit = np.sqrt(6/(dim_in + dim_out))
-        return np.random.uniform(-limit, limit, (dim_in, dim_out))
+        return np.random.uniform(-limit, limit, (dim_out, dim_in))
 
 
 class XavierNormalInitialization(AbstractKernelInitialization):
     def __init__(self):
         pass
 
-    def initialize(self, dim_in, dim_out):
+    def initialize(self, dim_out, dim_in):
         std = np.sqrt(2/(dim_in + dim_out))
-        return np.random.normal(0, std, (dim_in, dim_out))
+        return np.random.normal(0, std, (dim_out, dim_in))
 
 
 class ZerosInitialization(AbstractKernelInitialization):
     def __init__(self):
         pass
 
-    def initialize(self, dim_in, dim_out):
-        return np.zeros((dim_in, dim_out))
+    def initialize(self, dim_out, dim_in):
+        return np.zeros((dim_out, dim_in))
 
