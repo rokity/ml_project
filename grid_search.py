@@ -1,5 +1,5 @@
 from neural_network import NeuralNetwork
-from parser import Monks_parser
+from parser import Cup_parser
 from utility import set_style_plot
 from kernel_initialization import *
 from utility import write_results
@@ -7,8 +7,25 @@ from utility import change_output_value
 import multiprocessing
 import random
 import pandas as pd
+from utility import *
+import importlib
 
 set_style_plot()
+
+INPUT_DIM=20
+OUTPUT_DIM=2
+
+PARAM_GRID = {
+    'alpha': list(np.linspace(0.1, 0.9, 9).round(2)),
+    'eta': list(np.linspace(0.001, 0.009, 9).round(2)),
+    'lambda': list(np.linspace(0.001, 0.09, 9).round(3)),
+    'add_layer': list([True, False]),
+    'functions':list(['sigmoid','tanh','relu']),
+    'hidden_nodes': list([10, 15, 20, 30, 40,50,60]),
+    'kernel_init': list(['RandomInitialization','RandomNormalInitialization',
+    'RandomUniformInitialization','XavierUniformInitialization',
+    'XavierNormalInitialization','ZerosInitialization'])
+}
 
 
 def print_hyperparams(hyperperams):
@@ -41,6 +58,26 @@ def run(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperparam
         print("[+] Task completed")
     return val
 
+def create_model(hyperparams):
+    lr = hyperparams['eta']
+    mom = hyperparams['alpha']
+    l2 = hyperparams['lambda']
+    dim_hid = int(hyperparams['hidden_nodes'])
+    add_layer = hyperparams['add_layer']
+    _fun = hyperparams['functions']
+    kernel_init = hyperparams['kernel_init']
+    module = __import__('kernel_initialization')
+    KernelInit = getattr(module, kernel_init)
+    
+    model = NeuralNetwork(loss='mse', metric='mee')
+    model.add_layer(dim_hid, input_dim=INPUT_DIM, activation=_fun, kernel_initialization=KernelInit())
+    if add_layer:
+        model.add_layer(dim_hid, activation=_fun, kernel_initialization=KernelInit())
+    model.add_output_layer(OUTPUT_DIM, activation='linear', kernel_initialization=KernelInit())
+    
+    model.compile(lr=lr, momentum=mom, l2=l2)
+    return model
+
 
 def grid_search(
     create_model,
@@ -59,18 +96,15 @@ def grid_search(
     pool = multiprocessing.Pool(processes=n_threads)
     results = multiprocessing.Manager().list()
 
-    # for key in param_grid.keys:
-    #     for v in param_grid[key].items():
 
-    for i in range(max_evals):
+    for i in range(1,max_evals): 
         hyperaparams = {k: random.sample(v, 1)[0]
-                        for k, v in param_grid.items()}
+                            for k, v in param_grid.items()}   
         model = create_model(hyperaparams)
-        pool.apply_async(
-            func=run,
-            args=(model, tr, vl, ts, results, verbose, tol,
-                  epochs, batch_size, hyperaparams, monitor_value)
-        )
+        pool.apply_async(func=run,
+                                    args=(model, tr, vl, ts, results, verbose, tol,
+                                        epochs, batch_size, hyperaparams, monitor_value)
+                                )
 
     if verbose:
         print('[+] All threads are loaded')
@@ -101,41 +135,24 @@ def grid_search(
     return best_model
 
 
-path_tr = 'data/monks/monks-1.train'
-path_ts = 'data/monks/monks-1.test'
-path_result_randomsearch = 'out/monks/monk1/randomsearch.csv'
-path_err = 'out/monks/monk1/err_monk1_gridsearch'
-path_acc = 'out/monks/monk1/acc_monk1_gridsearch'
-path_result_bestmodel = 'out/monks/monk1/results_gridsearch.csv'
 
-dim_in = 6
-one_hot = 17
-dim_out = 1
+DIR_CUP = './data/cup/'
+PATH_TR = 'ML-CUP19-TR.csv'
+PATH_TS = 'ML-CUP19-TS.csv'
+INPUT_DIM = 20
+OUTPUT_DIM = 2
 
-parser = Monks_parser(path_tr, path_ts)
+PERC_VL = 0.25
+PERC_TS = 0.25
 
-X_train, Y_train, X_test, Y_test = parser.parse(dim_in, dim_out, one_hot)
-
-Y_train = change_output_value(Y_train, 0, -1)
-Y_test = change_output_value(Y_test, 0, -1)
-
-dim_in = one_hot
+parser = Cup_parser(DIR_CUP + PATH_TR)
+data, targets = parser.parse(INPUT_DIM, OUTPUT_DIM)
+X_train, Y_train, X_val, Y_val, X_test, Y_test = train_val_test_split(data, targets, val_size=PERC_VL, test_size=PERC_TS, shuffle=True)
 
 
 
 
-def create_model(hyperparams):
-    lr = hyperparams['eta']
-    mom = hyperparams['alpha']
-    dim_hid = int(hyperparams['hidden_nodes'])
 
-    model = NeuralNetwork(loss='mse', metric='accuracy1-1')
-    model.add_layer(dim_hid, input_dim=dim_in, activation='sigmoid', kernel_initialization=XavierNormalInitialization())
-    model.add_output_layer(dim_out, activation='tanh', kernel_initialization=XavierUniformInitialization())
-
-    model.compile(lr, mom)
-
-    return model
 
 
 def main():
@@ -143,28 +160,23 @@ def main():
     model = grid_search(
         create_model,
         (X_train, Y_train),
-        (X_train, Y_train),
-        20,
-        X_train.shape[0],
+        (X_val, Y_val),
+        300,
+        10,
         param_grid=PARAM_GRID,
-        monitor_value='mse',
+        monitor_value='val_mse',
         ts=(X_test, Y_test),
-        max_evals=5,
-        n_threads=1,
-        #path_results=path_result_randomsearch,
-        tol=0.5,
+        max_evals=100,
+        n_threads=5,
+        # path_results=path_result_randomsearch,
         verbose=True
     )
 
     model.plot_loss(val=False, test=True, show=True)
-
-
     model.plot_metric(val=False, test=True, show=True)
 
     err_tr, acc_tr = model.evaluate(X_train, Y_train)
     err_ts, acc_ts = model.evaluate(X_test, Y_test)
-    acc_tr = acc_tr*100
-    acc_ts = acc_ts*100
     errors = [err_tr, err_ts]
     accuracy = [acc_tr, acc_ts]
 
@@ -174,9 +186,19 @@ def main():
     }
 
     print(res)
+    path_err='out/cup/grid_search_err'
+    path_acc='out/cup/grid_search_acc'
+    path_result_bestmodel='out/cup/grid_search_results.csv'
     save = (path_err, path_acc, path_result_bestmodel)
-    write_results(res, model, save=save,all=True)
+    write_results(
+    res, model,
+    save_plot_loss=path_err, save_plot_metric=path_acc, save_result=path_result_bestmodel,
+    validation=False,
+    test=True,
+    show=True
+)
 
 
 if __name__ == "__main__":
     main()
+
