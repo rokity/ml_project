@@ -108,26 +108,26 @@ class NeuralNetwork:
             x = layer.feedforward(x)
         return x
 
-    def backpropagation(self, d):
+    def backpropagation(self, d, batch_size):
         """
 
         @param d: real output
+        @param batch_size: size of the batch
         execute backpropagation algorithm
         """
         loc_grad = None
         for layer in reversed(self.layers):
-            loc_grad = layer.backpropagation(loc_grad, d)
+            loc_grad = layer.backpropagation(loc_grad, d, batch_size)
 
-    def update_weights(self, batch_size):
+    def update_weights(self):
         """
 
-        @param batch_size: size of the batch
         update the parameters of the model
         """
         for layer in self.layers:
-            layer.update_weights(self.lr, self.momentum, self.l2, batch_size)
+            layer.update_weights(self.lr, self.momentum, self.l2)
 
-    def fit(self, X_train, Y_train, epochs, batch_size, vl=None, ts=None, tol=None, shuffle=False, early_stopping=None, verbose=False):
+    def fit(self, X_train, Y_train, epochs, batch_size=32, vl=None, ts=None, tol=None, shuffle=False, early_stopping=None, verbose=False):
         """
 
         @param X_train: training samples
@@ -142,7 +142,7 @@ class NeuralNetwork:
                         False otherwise
         @param early_stopping: early stopping method
         @param verbose: used to print some informations
-        @return: error on the validation set (if it's not None) otherwise error on the training set
+        @return: history
         """
 
         self.history[self.loss.name] = []
@@ -183,35 +183,38 @@ class NeuralNetwork:
                     x = X_train[curr_i].reshape(1, X_train.shape[1])
                     d = Y_train[curr_i].reshape(1, Y_train.shape[1])
                     y = self.__feedforward(x)
-                    self.backpropagation(d.T)
+                    self.backpropagation(d.T, batch_size)
                     loc_err += self.loss.compute_fun(d.T, y)
                     loc_metric += self.metric.compute_fun(d.T, y)
                     curr_i = (curr_i + 1) % n_samples
 
                 tr_loss_batch[nb] = loc_err / batch_size
-                tr_lossr_batch[nb] = (loc_err + self.l2 * self.sum_square_weights()) / batch_size
+                tr_lossr_batch[nb] = tr_loss_batch[nb] + self.l2 * self.sum_square_weights()
                 tr_metric_batch[nb] = loc_metric / batch_size
 
-                self.update_weights(batch_size)
+                self.update_weights()
 
             # compute average loss/metric in training set
+
             tr_err = np.mean(tr_loss_batch)
             tr_err_pen = np.mean(tr_lossr_batch)
             tr_metric = np.mean(tr_metric_batch)
 
+            '''
+            tr_err, tr_metric = self.evaluate(X_train, Y_train)
+            tr_err_pen = tr_err + (self.l2 *self.sum_square_weights() / n_samples)
+            '''
+
             self.history[self.loss.name].append(tr_err)
             self.history[self.metric.name].append(tr_metric)
 
-
-            # compute error in validation set
+            # compute error on validation set
             if vl is not None:
                 vl_err, vl_metric = self.evaluate(X_val, Y_val)
                 self.history["val_" + self.loss.name].append(vl_err)
                 self.history["val_" + self.metric.name].append(vl_metric)
-            else:   # if there is no validation set it uses the training for the early stopping
-                vl_err = tr_err_pen
 
-            # compute error in test set
+            # compute error on test set
             if ts is not None:
                 ts_err, ts_metric = self.evaluate(X_test, Y_test)
                 self.history["test_" + self.loss.name].append(ts_err)
@@ -221,13 +224,17 @@ class NeuralNetwork:
                 print(
                     "It {:6d}: tr_err (with penality term): {:.6f},"
                     "\t tr_err (without penality term): {:.6f}"
-                    "\t vl_err: {:.6f},".format(
+                    .format(
                         curr_epoch,
                         tr_err_pen,
                         tr_err,
-                        self.history[self.loss.name][-1]),
-                    end='\n'
+                        ),
+                    end=''
                 )
+                if vl is not None:
+                    print("\t vl_err: {:.6f}".format(self.history["val_" + self.loss.name][-1]))
+                else:
+                    print()
 
             curr_epoch += 1
 
@@ -263,14 +270,12 @@ class NeuralNetwork:
                 if ts is not None:
                     print("{} accuracy test set: {:.6f}".format(self.metric.name, self.history["test_" + self.metric.name][-1]))
 
-        return vl_err
+        return self.history
 
     def sum_square_weights(self):
         """
 
-        @param size: dimension of the batch
-
-        It's used to regularization
+        @return: sum(w^2) for each layer
         """
         sum = 0
         for layer in self.layers:
@@ -278,9 +283,19 @@ class NeuralNetwork:
         return sum
 
     def plot_loss(self, val=False, test=False, show=True, path=None):
+        """
+
+        @param val: True if you want plot the validation loss
+                    False otherwise
+        @param test: True if you want plot the test loss
+                     False otherwise
+        @param show: True if you want show the plots
+                     False otherwise
+        @param path: path of file where to save the plots
+        """
         epochs = self.history['epochs']
-        plt.xlabel('epochs')
-        plt.ylabel(self.loss.name)
+        plt.xlabel('epochs', fontsize=15)
+        plt.ylabel(self.loss.name, fontsize=15)
         plt.plot(epochs, self.history[self.loss.name], 'r', label="Training")
         if val:
             plt.plot(epochs, self.history["val_" + self.loss.name], 'g--', label="Validation")
@@ -295,9 +310,19 @@ class NeuralNetwork:
         plt.close()
 
     def plot_metric(self, val=False, test=False, show=True, path=None):
+        """
+
+        @param val: True if you want plot the validation metric
+                    False otherwise
+        @param test: True if you want plot the test metric
+                     False otherwise
+        @param show: True if you want show the plots
+                     False otherwise
+        @param path: path of file where to save the plots
+        """
         epochs = self.history['epochs']
-        plt.xlabel('epochs')
-        plt.ylabel(self.metric.name)
+        plt.xlabel('epochs', fontsize=15)
+        plt.ylabel(self.metric.name, fontsize=15)
         plt.plot(epochs, self.history[self.metric.name], 'r', label="Training")
         if val:
             plt.plot(epochs, self.history["val_" + self.metric.name], 'g--', label="Validation")
@@ -310,4 +335,3 @@ class NeuralNetwork:
         if show:
             plt.show()
         plt.close()
-        

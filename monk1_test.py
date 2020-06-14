@@ -59,7 +59,7 @@ model = random_search(
     monitor_value='mse',
     ts=(X_test, Y_test),
     max_evals=30,
-    path_results=path_result_randomsearch,
+    #path_results=path_result_randomsearch,
     tol=1e-3,
     verbose=True
 )
@@ -76,6 +76,7 @@ res = {
     'accuracy': accuracy,
 }
 
+'''
 write_results(
     res, model,
     save_plot_loss=path_loss, save_plot_metric=path_acc, save_result=path_result_bestmodel,
@@ -83,3 +84,5 @@ write_results(
     test=True,
     show=True
 )
+'''
+
