@@ -18,17 +18,21 @@ class NeuralNetwork:
         self.metric = FunctionsFactory.build(metric)
         self.history = dict()
 
-    def compile(self, lr=1e-3, momentum=0.0, l2=0.0):
+    def compile(self, lr=1e-3, momentum=0.0, l2=0.0, tau=None, perc_eps_t=1):
         """
 
         @param lr: learning rate
         @param momentum: momentum
         @param l2: l2 regularizer hyperparameter
+        @param tau: if it's different from None, the model uses the learning rate decay linearly until iteration tau
+        @param perc_eps_t: rate of the learning rate used in the update formula
         @return:
         """
         self.lr = lr
         self.momentum = momentum
         self.l2 = l2
+        self.tau = tau
+        self.perc_eps_t = perc_eps_t
         for i in range(len(self.layers)):
             self.layers[i].compile()
 
@@ -168,6 +172,10 @@ class NeuralNetwork:
         tr_metric_batch = np.zeros(n_batch)
         end = False
 
+        if self.tau is not None:
+            initial_lr = self.lr
+            eps_t = initial_lr * self.perc_eps_t / 100
+
         while curr_epoch < epochs and not end:
 
             if shuffle:
@@ -238,6 +246,11 @@ class NeuralNetwork:
 
             curr_epoch += 1
 
+            if self.tau is not None:
+                if curr_epoch < self.tau:
+                    alpha = curr_epoch / self.tau
+                    self.lr = (1 - alpha) * initial_lr + alpha * eps_t
+
             if tol is not None:
                 if tr_err_pen < tol:
                     end = True
@@ -268,7 +281,7 @@ class NeuralNetwork:
                 if vl is not None:
                     print("{} validation set: {:.6f}".format(self.metric.name, self.history["val_" + self.metric.name][-1]))
                 if ts is not None:
-                    print("{} accuracy test set: {:.6f}".format(self.metric.name, self.history["test_" + self.metric.name][-1]))
+                    print("{} test set: {:.6f}".format(self.metric.name, self.history["test_" + self.metric.name][-1]))
 
         return self.history
 

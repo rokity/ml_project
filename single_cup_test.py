@@ -24,10 +24,10 @@ model = NeuralNetwork('mse', 'mee')
 model.add_layer(40, input_dim=X_train.shape[1], activation='sigmoid', kernel_initialization=RandomUniformInitialization())
 model.add_output_layer(Y_train.shape[1], activation='linear', kernel_initialization=RandomUniformInitialization())
 
-model.compile(lr=0.008, momentum=0.5, l2=0.0001)
+model.compile(lr=0.05, momentum=0.8, l2=0.001, tau=300, perc_eps_t=1)
 
 model.fit(
-    X_train, Y_train, 500, batch_size=8, vl=(X_val, Y_val), ts=(X_test, Y_test),
+    X_train, Y_train, 500, batch_size=16, vl=(X_val, Y_val), ts=(X_test, Y_test),
     shuffle=True, tol=1e-2, verbose=True)
 model.plot_loss(val=True, test=True)
 model.plot_metric(val=True, test=True)
