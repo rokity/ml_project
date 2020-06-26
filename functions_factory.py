@@ -11,6 +11,8 @@ class FunctionsFactory:
             return Function(name, sigmoid, sigmoid_der)
         elif name == 'relu':
             return Function(name, reLU, reLU_der)
+        elif name == 'leaky_relu':
+            return Function(name, leaky_reLU, leaky_reLU_der)
         elif name == 'linear':
             return Function(name, linear, linear_der)
         elif name == 'mee':
@@ -67,6 +69,19 @@ def reLU_der(x):
     y = x.copy()
     y[y > 0] = 1.0
     y[y <= 0] = 0.0
+    return y
+
+
+def leaky_reLU(x):
+    y = x.copy()
+    y[y <= 0] = 0.001 * y[y <= 0]
+    return y
+
+
+def leaky_reLU_der(x):
+    y = x.copy()
+    y[y > 0] = 1.0
+    y[y <= 0] = 0.001
     return y
 
 
