@@ -3,18 +3,38 @@ import sys
 
 class EarlyStopping:
     def __init__(self, monitor):
+        """
+
+        @param monitor: value used for the stop condition
+        """
         self.monitor = monitor
 
     def get_monitor(self):
+        """
+
+        @return: monitor used
+        """
         return self.monitor
 
-    def early_stopping_check(self, metric):
+    def early_stopping_check(self, history):
+        """
+
+        @param history: model history
+        @return:
+        """
         raise NotImplementedError
 
 
 class GL(EarlyStopping):
 
     def __init__(self, monitor, alpha=4, patience=1, verbose=False):
+        """
+
+        @param monitor: value used for the stop condition
+        @param alpha: absolute tolerance
+        @param patience: number of epochs with no improvement after which training will be stopped.
+        @param verbose: used for debug
+        """
         super().__init__(monitor)
         self.alpha = alpha
         self.min_metric = sys.float_info.max
@@ -22,6 +42,12 @@ class GL(EarlyStopping):
         self.verbose = verbose
 
     def early_stopping_check(self, history):
+        """
+
+        @param history: model history
+        @return: True if the condition is satisfied
+                 False otherwise
+        """
         metric = history[self.monitor][-1]
         gl = 100 * (metric / self.min_metric - 1)
         if self.verbose:
@@ -39,6 +65,13 @@ class GL(EarlyStopping):
 class PQ(EarlyStopping):
 
     def __init__(self, monitor, training_loss, alpha=4, k=5, verbose=False):
+        """
+
+        @param monitor: value used for the stop condition
+        @param alpha: absolute tolerance
+        @param k: training strip
+        @param verbose: used for debug
+        """
         super().__init__(monitor)
         self.alpha = alpha
         self.tr_loss = training_loss
@@ -48,11 +81,21 @@ class PQ(EarlyStopping):
         self.verbose = verbose
 
     def init_PQ(self):
+        """
+
+        initialize the training strip method
+        """
         self.curr_k = 0
         self.min_tr_in_k = sys.float_info.max
         self.sum_tr_in_k = 0
 
     def early_stopping_check(self, history):
+        """
+
+        @param history: model history
+        @return: True if the condition is satisfied
+                 False otherwise
+        """
         metric = history[self.monitor][-1]
         tr_loss = history[self.tr_loss][-1]
         gl = 100 * ((metric / self.min_metric) - 1)

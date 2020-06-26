@@ -74,9 +74,6 @@ model = random_search(
     shuffle=True
 )
 
-model.plot_loss(val=False, test=True, show=True)
-model.plot_metric(val=False, test=True, show=True)
-
 loss_tr, mee_tr = model.evaluate(X_train, Y_train)
 loss_ts, mee_ts = model.evaluate(X_test, Y_test)
 loss = [loss_tr, loss_ts]
