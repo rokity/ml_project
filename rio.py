@@ -10,7 +10,6 @@ import pandas as pd
 from utility import *
 import importlib
 import time 
-import datetime
 
 
 set_style_plot()
@@ -98,15 +97,13 @@ def grid_search(
     results = multiprocessing.Manager().list()
 
 
-    endTime = datetime.datetime.now() + datetime.timedelta(hours=7)
-    while True:    
-        if datetime.datetime.now() >= endTime:
-            break             
+    
+    for i in range(1,3):                         
         hyperaparams = {k: random.sample(v, 1)[0] for k, v in param_grid.items()}
         model = create_model(hyperaparams)
         pool.apply_async(func=run,
                                     args=(model, tr, vl, ts, results, True, tol,
-                                                                    1000, hyperaparams['batch_size'], hyperaparams, monitor_value)
+                                                                    500, hyperaparams['batch_size'], hyperaparams, monitor_value)
                                                         )
 
     if verbose:

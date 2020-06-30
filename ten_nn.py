@@ -67,9 +67,10 @@ print(hist.tail())
 print("--------------------------------------------")
 
 
-loss, mae, mse = model.evaluate(X_test, Y_test, verbose=2)
+loss, mae, mse,mee = model.evaluate(X_test, Y_test, verbose=2)
 
 
 print("Testing set Loss: {:5.2f} \n".format(loss))
 print("Testing set Mae: {:5.2f} \n".format(mae))
 print("Testing set Mse: {:5.2f} \n".format(loss))
+print("Testing set Mee: {:5.2f} \n".format(mee))
