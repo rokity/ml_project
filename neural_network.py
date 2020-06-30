@@ -2,7 +2,7 @@ from layer import *
 from functions_factory import FunctionsFactory
 from kernel_initialization import *
 import matplotlib.pyplot as plt
-import sys
+from optimizers import *
 
 
 class NeuralNetwork:
@@ -11,60 +11,46 @@ class NeuralNetwork:
         """
 
         @param loss: string that represents the loss function to use
+                     or instance of Function class (@see functions_factory)
         @param metric: string that represents the metric to use
+                       or instance of Function class (@see functions_factory)
         """
         self.layers = []
-        self.loss = FunctionsFactory.build(loss)
-        self.metric = FunctionsFactory.build(metric)
+        if isinstance(loss, str):
+            self.loss = FunctionsFactory.build(loss)
+        else:
+            self.loss = loss
+        if isinstance(metric, str):
+            self.metric = FunctionsFactory.build(metric)
+        else:
+            self.metric = metric
+        self.n_layers = 0
         self.history = dict()
 
-    def compile(self, lr=1e-3, momentum=0.0, l2=0.0):
-        """
 
-        @param lr: learning rate
-        @param momentum: momentum
-        @param l2: l2 regularizer hyperparameter
-        @return:
-        """
-        self.lr = lr
-        self.momentum = momentum
-        self.l2 = l2
+    def compile(self, optimizer=SGD()):
+        self.optimizer = optimizer
         for i in range(len(self.layers)):
             self.layers[i].compile()
+        self.optimizer.initialize(self.layers)
 
-    def add_layer(self, dim_out, input_dim=None, activation='linear', kernel_initialization=RandomUniformInitialization(), label='Dense input'):
+    def add_layer(self, dim_out, input_dim=None, activation='linear', kernel_initialization=RandomUniformInitialization()):
         """
 
         @param dim_out: dimension of the output
         @param input_dim: dimension of the input
         @param activation: string that represents the activation function
         @param kernel_initialization: weights initialization
-        @param label: layer name
         @return:
         """
         f_act = FunctionsFactory.build(activation)
         if input_dim is not None:
-            layer = Layer(input_dim, dim_out, f_act, self.loss, kernel_initialization, label)
+            layer = Layer(input_dim, dim_out, f_act, self.loss, kernel_initialization, "Dense_" + str(self.n_layers))
         else:
-            layer = Layer(self.layers[-1].dim_out, dim_out, f_act, self.loss, kernel_initialization, label)
+            layer = Layer(self.layers[-1].dim_out, dim_out, f_act, self.loss, kernel_initialization, "Dense_" + str(self.n_layers))
+        self.n_layers += 1
         self.layers.append(layer)
 
-    def add_output_layer(self, dim_out, input_dim=None, activation='linear', kernel_initialization=RandomUniformInitialization(), label='Dense output'):
-        """
-
-        @param dim_out: dimension of the output
-        @param input_dim: dimension of the input
-        @param activation: string that represents the activation function
-        @param kernel_initialization: weights initialization
-        @param label: layer name
-        @return:
-        """
-        f_act = FunctionsFactory.build(activation)
-        if input_dim is not None:
-            layer = OutputLayer(input_dim, dim_out, f_act, self.loss, kernel_initialization, label)
-        else:
-            layer = OutputLayer(self.layers[-1].dim_out, dim_out, f_act, self.loss, kernel_initialization, label)
-        self.layers.append(layer)
 
     def predict(self, X: np.ndarray):
         """
@@ -108,24 +94,21 @@ class NeuralNetwork:
             x = layer.feedforward(x)
         return x
 
-    def backpropagation(self, d, batch_size):
+    def _backpropagation(self, d):
         """
 
         @param d: real output
-        @param batch_size: size of the batch
+
         execute backpropagation algorithm
         """
-        loc_grad = None
-        for layer in reversed(self.layers):
-            loc_grad = layer.backpropagation(loc_grad, d, batch_size)
+        self.optimizer.compute_gradients(d, self.layers)
 
-    def update_weights(self):
+    def _update_parameters(self, batch_size):
         """
 
         update the parameters of the model
         """
-        for layer in self.layers:
-            layer.update_weights(self.lr, self.momentum, self.l2)
+        self.optimizer.update_parameters(self.layers, batch_size)
 
     def fit(self, X_train, Y_train, epochs, batch_size=32, vl=None, ts=None, tol=None, shuffle=False, early_stopping=None, verbose=False):
         """
@@ -183,27 +166,22 @@ class NeuralNetwork:
                     x = X_train[curr_i].reshape(1, X_train.shape[1])
                     d = Y_train[curr_i].reshape(1, Y_train.shape[1])
                     y = self.__feedforward(x)
-                    self.backpropagation(d.T, batch_size)
+                    self._backpropagation(d.T)
                     loc_err += self.loss.compute_fun(d.T, y)
                     loc_metric += self.metric.compute_fun(d.T, y)
                     curr_i = (curr_i + 1) % n_samples
 
                 tr_loss_batch[nb] = loc_err / batch_size
-                tr_lossr_batch[nb] = tr_loss_batch[nb] + self.l2 * self.sum_square_weights()
+                tr_lossr_batch[nb] = tr_loss_batch[nb] + self.optimizer.get_regualarization_for_loss(self.layers)
                 tr_metric_batch[nb] = loc_metric / batch_size
 
-                self.update_weights()
+                self._update_parameters(batch_size)
 
             # compute average loss/metric in training set
 
             tr_err = np.mean(tr_loss_batch)
-            tr_err_pen = np.mean(tr_lossr_batch)
             tr_metric = np.mean(tr_metric_batch)
-
-            '''
-            tr_err, tr_metric = self.evaluate(X_train, Y_train)
-            tr_err_pen = tr_err + (self.l2 *self.sum_square_weights() / n_samples)
-            '''
+            tr_err_pen = np.mean(tr_lossr_batch)
 
             self.history[self.loss.name].append(tr_err)
             self.history[self.metric.name].append(tr_metric)
@@ -238,15 +216,16 @@ class NeuralNetwork:
 
             curr_epoch += 1
 
-            if tol is not None:
-                if tr_err_pen < tol:
-                    end = True
-
             if early_stopping is not None:
                 if early_stopping.early_stopping_check(self.history):
                     end = True
 
+            if tol is not None:
+                if tr_err_pen < tol:
+                    end = True
+
         self.history["epochs"] = list(range(curr_epoch))
+
 
         if verbose:
             print()
@@ -268,7 +247,7 @@ class NeuralNetwork:
                 if vl is not None:
                     print("{} validation set: {:.6f}".format(self.metric.name, self.history["val_" + self.metric.name][-1]))
                 if ts is not None:
-                    print("{} accuracy test set: {:.6f}".format(self.metric.name, self.history["test_" + self.metric.name][-1]))
+                    print("{} test set: {:.6f}".format(self.metric.name, self.history["test_" + self.metric.name][-1]))
 
         return self.history
 
@@ -296,11 +275,11 @@ class NeuralNetwork:
         epochs = self.history['epochs']
         plt.xlabel('epochs', fontsize=15)
         plt.ylabel(self.loss.name, fontsize=15)
-        plt.plot(epochs, self.history[self.loss.name], 'r', label="Training")
+        plt.plot(epochs, self.history[self.loss.name], color='tab:orange', linestyle='-', label="Training")
         if val:
-            plt.plot(epochs, self.history["val_" + self.loss.name], 'g--', label="Validation")
+            plt.plot(epochs, self.history["val_" + self.loss.name], color='tab:green', linestyle='--', label="Validation")
         if test:
-            plt.plot(epochs, self.history["test_" + self.loss.name], 'b-.', label="Test")
+            plt.plot(epochs, self.history["test_" + self.loss.name], color='tab:blue', linestyle='-.', label="Test")
         plt.legend(fontsize=20)
         if path is not None:
             plt.draw()
@@ -323,11 +302,11 @@ class NeuralNetwork:
         epochs = self.history['epochs']
         plt.xlabel('epochs', fontsize=15)
         plt.ylabel(self.metric.name, fontsize=15)
-        plt.plot(epochs, self.history[self.metric.name], 'r', label="Training")
+        plt.plot(epochs, self.history[self.metric.name], color='tab:orange', linestyle='-', label="Training")
         if val:
-            plt.plot(epochs, self.history["val_" + self.metric.name], 'g--', label="Validation")
+            plt.plot(epochs, self.history["val_" + self.metric.name], color='tab:green', linestyle='--', label="Validation")
         if test:
-            plt.plot(epochs, self.history["test_" + self.metric.name], 'b-.', label="Test")
+            plt.plot(epochs, self.history["test_" + self.metric.name], color='tab:blue', linestyle='-.', label="Test")
         plt.legend(fontsize=20)
         if path is not None:
             plt.draw()

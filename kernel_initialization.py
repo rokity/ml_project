@@ -4,6 +4,13 @@ import numpy as np
 class AbstractKernelInitialization:
 
     def initialize(self, dim_out, dim_in):
+        """
+
+        @param dim_out: output dimension
+        @param dim_in: input dimension
+
+        initializes the weights of a single layer
+        """
         pass
 
 
