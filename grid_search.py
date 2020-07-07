@@ -105,8 +105,8 @@ def grid_search(
         hyperaparams = {k: random.sample(v, 1)[0] for k, v in param_grid.items()}
         model = create_model(hyperaparams)
         pool.apply_async(func=run,
-                                    args=(model, tr, vl, ts, results, True, tol,
-                                                                    1000, hyperaparams['batch_size'], hyperaparams, monitor_value)
+                        args=(model, tr, vl, ts, results, True, tol,
+                                   1000, hyperaparams['batch_size'], hyperaparams, monitor_value)
                                                         )
 
     if verbose:

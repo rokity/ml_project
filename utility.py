@@ -2,6 +2,9 @@ import pandas as pd
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 import numpy as np
+import random
+import itertools
+import csv
 
 
 def write_results(
@@ -99,6 +102,34 @@ def train_val_test_split(X, Y, val_size=0.25, test_size=0.25, shuffle=False):
     Y_train = Y[split_test+split_val:n_samples]
     return X_train, Y_train, X_val, Y_val, X_test, Y_test
 
+def train_val_test_split_k_fold(X, Y,  test_size=0.25, shuffle=False,k_fold=5):
+    """
+
+        @param X: samples
+        @param Y: targets
+        @param test_size: size of the test set (%)
+        @param shuffle: True if you want shuffle data,False otherwise
+        @param k_fold : number of folds which to separate train and validation
+        @return: (X_test,Y_test,folds_X,folds_Y)
+        """
+    n_samples = X.shape[0]
+    if shuffle:
+        idx = np.random.permutation(n_samples)
+        X = X[idx]
+        Y = Y[idx]
+    split_test = int(n_samples * test_size)
+    X_test = X[:split_test]
+    Y_test = Y[:split_test]
+    X_train=X[split_test+1:]
+    Y_train = Y[split_test + 1:]
+    split_val=int(len(X_train)/k_fold)
+    folds_X=list()
+    folds_Y=list()
+    for i in range(0,k_fold):
+        folds_X.append(X_train[i*split_val:split_val+(i*split_val)])
+        folds_Y.append(Y_train[i*split_val:split_val+(i*split_val)])
+    return (X_test,Y_test,folds_X,folds_Y)
+
 
 def write_blind_result(results, path):
     """
@@ -115,3 +146,21 @@ def write_blind_result(results, path):
     for i in range(1,results[0].size+1):
         f.write("{},{},{}\n".format(i,results[0][i-1],results[1][i-1]))
     f.close()
+
+def generate_hyperparameters_combination(PARAMS,_random=False,max_evals=0,path_params=None):
+    if(_random==True):
+        hyperaparams=list()
+        for i in range(max_evals):
+            hyperaparams.append({k: random.sample(v, 1)[0] for k, v in PARAMS.items()})
+        return hyperaparams
+    if(_random==False):
+        Input = PARAMS
+        f = open(path_params, 'w')
+        with f:
+            writer = csv.writer(f)
+
+
+
+
+
+

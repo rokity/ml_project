@@ -3,29 +3,42 @@ from utility import *
 from neural_network import NeuralNetwork
 from kernel_initialization import *
 from random_search import random_search
+from optimizers import *
+import time
 
 
 DIR_CUP = './data/cup/'
 PATH_TR = 'ML-CUP19-TR.csv'
 PATH_TS = 'ML-CUP19-TS.csv'
-path_result_randomsearch = "./out/cup/randomsearch2.csv"
-path_result_model = "./out/cup/results.csv"
 INPUT_DIM = 20
 OUTPUT_DIM = 2
+path_result_randomsearch='out/cup/randomsearch.csv'
+path_result_model='out/cup/random_search_model'
+
 
 PERC_VL = 0.25
-PERC_TS = 0.15
+PERC_TS = 0.25
+
+set_style_plot()
 
 
 PARAM_GRID = {
-    'eta': list(np.linspace(0.01, 0.09, 9).round(3)) + list(np.linspace(0.001, 0.009, 9).round(4)),
-    'alpha': list(np.linspace(0.1, 0.9, 9).round(2)),
-    'lambda': list(np.linspace(0.001, 0.009, 9).round(5)),
-    'tau': list([200, 300, 400]),
-    'perc_epst': list([1, 2, 3]),
-    'add_layer': list([True, False, False]),
-    'hidden_nodes': list([10, 15, 20, 30, 40]),
-    'hidden_nodes2': list([10, 15, 20, 30, 40])
+    'eta': list([0.001, 0.0001,0.01,0.1,0.00001]),
+    'alpha': list([0.5,0.6,0.7,0.8,0.9]),
+    'lambda': list(np.logspace(0, 5, 5).round(5)),
+    'rho':list([0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]),
+    'add_layer': list([True, False]),
+    'hidden_nodes': list([ 10,20, 30, 40]),
+    'hidden_nodes2': list([10,20, 30, 40,50]),
+    'optimizer':list(['SGD','Adam','RMSprop']),
+    'activation_function1':list(['tanh','sigmoid','linear']),
+    'activation_function2':list(['tanh','sigmoid','linear']),
+    'activation_function3':list(['tanh','sigmoid','linear']),
+    'init_weights':list(['XavierNormalInitialization','HeInitialization','RandomNormalInitialization']),
+    #'early_stopping':list(['GL','PQ',None]),
+    'batch_size':list([1,5,10,15,20,30,40,50,100]),
+    'beta_1': list([0.9,0.99,0.999]),
+    'beta_2': list([0.9,0.99,0.999]),
 }
 
 for k, v in PARAM_GRID.items():
@@ -34,40 +47,59 @@ for k, v in PARAM_GRID.items():
 
 def create_model(hyperparams):
     lr = hyperparams['eta']
-    mom = hyperparams['alpha']
     l2 = hyperparams['lambda']
-    tau = int(hyperparams['tau'])
-    perc_epst = int(hyperparams['perc_epst'])
+
     dim_hid = int(hyperparams['hidden_nodes'])
-    dim_hid2 = int(hyperparams['hidden_nodes2'])
-    add_layer = hyperparams['add_layer']
+    add_layer=hyperparams['add_layer']
+    activation_function1=hyperparams['activation_function1']
+    activation_function2=hyperparams['activation_function2']
+    optimizer=hyperparams['optimizer']
+    module = __import__('kernel_initialization')
+    KernelInit = getattr(module, hyperparams['init_weights'])
 
     model = NeuralNetwork(loss='mse', metric='mee')
-    model.add_layer(dim_hid, input_dim=INPUT_DIM, activation='sigmoid', kernel_initialization=RandomNormalInitialization())
-    if add_layer:
-        model.add_layer(dim_hid2, activation='sigmoid', kernel_initialization=RandomNormalInitialization())
-    model.add_output_layer(OUTPUT_DIM, activation='linear', kernel_initialization=RandomNormalInitialization())
+    model.add_layer(dim_hid, input_dim=INPUT_DIM, activation=activation_function1, kernel_initialization=KernelInit())
+    if(add_layer==True):
+        dim_hid_2=int(hyperparams['hidden_nodes2'])
+        activation_function3=hyperparams['activation_function3']
+        model.add_layer(dim_hid_2,activation=activation_function3,kernel_initialization=KernelInit())
+    model.add_layer(OUTPUT_DIM, activation=activation_function2, kernel_initialization=KernelInit())
 
-    model.compile(lr=lr, momentum=mom, l2=l2, tau=tau, perc_eps_t=perc_epst)
+    if(optimizer=='SGD'):
+        mom = hyperparams['alpha']
+        model.compile(optimizer=SGD(lr=lr, mom=mom,l2=l2, nesterov=True))
+    if (optimizer == 'RMSprop'):
+        rho = hyperparams['rho']
+        model.compile(optimizer=RMSprop(lr=lr, moving_average=rho, l2=l2))
+    if (optimizer == 'Adam'):
+        beta_1 = hyperparams['beta_1']
+        beta_2 = hyperparams['beta_2']
+        model.compile(optimizer=Adam(lr=lr, beta_1=beta_1,beta_2=beta_2, l2=l2))
 
     return model
 
+start_time = time.time()
 
 parser = Cup_parser(DIR_CUP + PATH_TR)
 data, targets = parser.parse(INPUT_DIM, OUTPUT_DIM)
+
 X_train, Y_train, X_val, Y_val, X_test, Y_test = train_val_test_split(data, targets, val_size=PERC_VL, test_size=PERC_TS, shuffle=True)
+k_fold=4
+X_test,Y_test,folds_X,folds_Y=train_val_test_split_k_fold(data,targets,test_size=PERC_TS, shuffle=True,k_fold=k_fold)
+
+
 
 model = random_search(
     create_model,
-    (X_train, Y_train),
-    (X_val, Y_val),
-    1000,
-    batch_size=16,
-    #ts=(X_test, Y_test),
+    tr=(folds_X, folds_Y),
+    k_fold=k_fold,
+    epochs=1000,
+    batch_size=10,
+    ts=(X_test, Y_test),
     param_grid=PARAM_GRID,
     monitor_value='val_mee',
-    n_threads=8,
-    max_evals=30,
+    n_threads=20,
+    max_evals=100,
     path_results=path_result_randomsearch,
     tol=1e-3,
     verbose=True,
@@ -85,6 +117,7 @@ res = {
 }
 
 print(res)
-
 print(model.evaluate(X_test, Y_test))
+print(time.time() - start_time, "seconds")
+
 write_results(res, model=None, save_result=path_result_model, test=False, validation=True)
