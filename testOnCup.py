@@ -33,3 +33,5 @@ model.fit(
     shuffle=True, tol=1e-2, verbose=True)
 model.plot_loss(val=True, test=True)
 model.plot_metric(val=True, test=True)
+val = model.history['mee'][-1]
+print("val {}".format(val))
