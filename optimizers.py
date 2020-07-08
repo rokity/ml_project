@@ -2,12 +2,20 @@ import numpy as np
 
 
 class SGD:
-    def __init__(self, lr=1e-3, mom=0.0, l2=0.0, nesterov=False):
+    def __init__(self, lr=1e-3, mom=0.0, l2=0.0, decay_lr=None, nesterov=False):
         self.lr = lr
         self.momentum = mom
         self.l2 = l2
         self.nesterov = nesterov
         self.is_init = False
+        if decay_lr is None:
+            self.decay_lr = None
+        else:
+            self.decay_lr = {
+                "epoch_tau": decay_lr["epoch_tau"],
+                "epsilon_tau": decay_lr["epsilon_tau_perc"] * lr,
+                "init_lr": lr
+            }
         self.params = dict()
 
     def initialize(self, layers):
@@ -70,6 +78,12 @@ class SGD:
             layer.w -= self.l2 * layer.w
         self.initialize(layers)
 
+    def update_hyperparameters(self, curr_epoch):
+        if self.decay_lr is not None:
+            if curr_epoch < self.decay_lr["epoch_tau"]:
+                alpha = curr_epoch / self.decay_lr["epoch_tau"]
+                self.lr = (1 - alpha) * self.decay_lr["init_lr"] + alpha * self.decay_lr["epsilon_tau"]
+                print("New lr value: ", self.lr)
 
 class RMSprop:
     def __init__(self, lr=1e-3, moving_average=0.9, epsilon=1e-7, l2=0.0):
@@ -128,6 +142,8 @@ class RMSprop:
 
         self.initialize(layers)
 
+    def update_hyperparameters(self, curr_epoch):
+        pass
 
 class Adam:
     def __init__(self, lr=1e-3, beta_1=0.9, beta_2=0.999, epsilon=1e-8, l2=0.0):
@@ -196,3 +212,6 @@ class Adam:
                 self.lr * curr_mb / ((np.sqrt(curr_vb)) + self.epsilon)
 
         self.initialize(layers)
+
+    def update_hyperparameters(self, curr_epoch):
+        pass

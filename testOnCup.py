@@ -22,16 +22,21 @@ X_train, Y_train, X_val, Y_val, X_test, Y_test = train_val_test_split(data, targ
 
 model = NeuralNetwork('mse', 'mee')
 
-model.add_layer(10, input_dim=X_train.shape[1], activation='leaky_relu', kernel_initialization=HeInitialization())
+model.add_layer(10, input_dim=X_train.shape[1], activation='sigmoid', kernel_initialization=HeInitialization())
 model.add_layer(Y_train.shape[1], activation='linear', kernel_initialization=HeInitialization())
 
 
-model.compile(optimizer=SGD(1e-4, mom=0.9, nesterov=True))
+lr = 0.05
+decay_lr_par = {
+    "epoch_tau": 300,
+    "epsilon_tau_perc": 0.01,
+    "init_lr": lr
+}
+
+model.compile(optimizer=SGD(lr=lr, mom=0.8, decay_lr=decay_lr_par, l2=0.0001))
 
 model.fit(
-    X_train, Y_train, 500, batch_size=1, vl=(X_val, Y_val), ts=(X_test, Y_test),
+    X_train, Y_train, 500, batch_size=16, vl=(X_val, Y_val), ts=(X_test, Y_test),
     shuffle=True, tol=1e-2, verbose=True)
 model.plot_loss(val=True, test=True)
 model.plot_metric(val=True, test=True)
-val = model.history['mee'][-1]
-print("val {}".format(val))

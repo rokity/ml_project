@@ -176,6 +176,7 @@ class NeuralNetwork:
                 tr_metric_batch[nb] = loc_metric / batch_size
 
                 self._update_parameters(batch_size)
+            self.optimizer.update_hyperparameters(curr_epoch)
 
             # compute average loss/metric in training set
 
