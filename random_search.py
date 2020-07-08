@@ -69,7 +69,14 @@ def random_search(
         batch_size,
         param_grid,
         monitor_value='val_loss',
-        ts=None, max_evals=10, path_results=None, n_threads=None, tol=None, verbose=False, shuffle=False
+        vl=None,
+        ts=None,
+        max_evals=10,
+        path_results=None,
+        n_threads=None,
+        tol=None,
+        verbose=False,
+        shuffle=False
     ):
     """
 
@@ -102,15 +109,21 @@ def random_search(
     for i in range(max_evals):
         hyperaparams = {k: random.sample(v, 1)[0] for k, v in param_grid.items()}
         model = create_model(hyperaparams)
-        for j in range(0,k_fold):
-            vl_fold=(folds_X[j],folds_Y[j])
-            x_tr_list=folds_X[:j+1]+folds_X[j+1:]
-            y_tr_list=folds_Y[:j+1]+folds_Y[j+1:]
-            tr_folds=(np.concatenate(x_tr_list),np.concatenate(y_tr_list))
+        if(vl==None):
+            for j in range(0,k_fold):
+                vl_fold=(folds_X[j],folds_Y[j])
+                x_tr_list=folds_X[:j+1]+folds_X[j+1:]
+                y_tr_list=folds_Y[:j+1]+folds_Y[j+1:]
+                tr_folds=(np.concatenate(x_tr_list),np.concatenate(y_tr_list))
+                thread_list.append(pool.apply_async(
+                    func=run,
+                    args=(model, tr_folds, vl_fold, ts, results, verbose, tol, epochs,               hyperaparams['batch_size'], hyperaparams, monitor_value, shuffle)
+                ))
+        else:
             thread_list.append(pool.apply_async(
-                func=run,
-                args=(model, tr_folds, vl_fold, ts, results, verbose, tol, epochs, hyperaparams['batch_size'], hyperaparams, monitor_value, shuffle)
-            ))
+                    func=run,
+                    args=(model, tr, vl, ts, results, verbose, tol, epochs,               hyperaparams['batch_size'], hyperaparams, monitor_value, shuffle)
+                ))
 
 
 

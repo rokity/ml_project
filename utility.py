@@ -125,9 +125,10 @@ def train_val_test_split_k_fold(X, Y,  test_size=0.25, shuffle=False,k_fold=5):
     split_val=int(len(X_train)/k_fold)
     folds_X=list()
     folds_Y=list()
-    for i in range(0,k_fold):
-        folds_X.append(X_train[i*split_val:split_val+(i*split_val)])
-        folds_Y.append(Y_train[i*split_val:split_val+(i*split_val)])
+    if(k_fold!=1):
+        for i in range(0,k_fold):
+            folds_X.append(X_train[i*split_val:split_val+(i*split_val)])
+            folds_Y.append(Y_train[i*split_val:split_val+(i*split_val)])
     return (X_test,Y_test,folds_X,folds_Y)
 
 
