@@ -26,14 +26,14 @@ model.add_layer(10, input_dim=X_train.shape[1], activation='sigmoid', kernel_ini
 model.add_layer(Y_train.shape[1], activation='linear', kernel_initialization=HeInitialization())
 
 
-lr = 0.05
+lr = 0.01
 decay_lr_par = {
-    "epoch_tau": 300,
+    "epoch_tau": 200,
     "epsilon_tau_perc": 0.01,
     "init_lr": lr
 }
 
-model.compile(optimizer=SGD(lr=lr, mom=0.8, decay_lr=decay_lr_par, l2=0.0001))
+model.compile(optimizer=SGD(lr=lr, mom=0.8, decay_lr=decay_lr_par, l2=0.00005))
 
 model.fit(
     X_train, Y_train, 500, batch_size=16, vl=(X_val, Y_val), ts=(X_test, Y_test),

@@ -27,8 +27,13 @@ class NeuralNetwork:
         self.n_layers = 0
         self.history = dict()
 
-
     def compile(self, optimizer=SGD()):
+        """
+
+        @param optimizer: optimizer used (@see optimizers.py)
+
+        It initializes the optimizer
+        """
         self.optimizer = optimizer
         for i in range(len(self.layers)):
             self.layers[i].compile()
@@ -226,7 +231,6 @@ class NeuralNetwork:
                     end = True
 
         self.history["epochs"] = list(range(curr_epoch))
-
 
         if verbose:
             print()
