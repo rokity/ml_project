@@ -322,7 +322,7 @@ class Adam:
             curr_vb = self.params["vb_" + layer.name] / (1 - self.beta_2)
 
             layer.w -= \
-                self.lr * ((curr_mw + self.l2 * layer.w) / ((np.sqrt(curr_vw)) + self.epsilon))
+                self.lr * (curr_mw / ((np.sqrt(curr_vw)) + self.epsilon) + self.l2 * layer.w)
             layer.b -= \
                 self.lr * curr_mb / ((np.sqrt(curr_vb)) + self.epsilon)
 

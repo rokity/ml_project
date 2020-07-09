@@ -96,8 +96,6 @@ def grid_search(
     pool = multiprocessing.Pool(processes=n_threads)
     results = multiprocessing.Manager().list()
 
-
-    
     for i in range(1,3):                         
         hyperaparams = {k: random.sample(v, 1)[0] for k, v in param_grid.items()}
         model = create_model(hyperaparams)
@@ -105,7 +103,6 @@ def grid_search(
                                     args=(model, tr, vl, ts, results, True, tol,
                                                                     500, hyperaparams['batch_size'], hyperaparams, monitor_value)
                                                         )
-
     if verbose:
         print('[+] All threads are loaded')
 

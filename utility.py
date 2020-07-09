@@ -148,13 +148,14 @@ def write_blind_result(results, path):
         f.write("{},{},{}\n".format(i,results[0][i-1],results[1][i-1]))
     f.close()
 
-def generate_hyperparameters_combination(PARAMS,_random=False,max_evals=0,path_params=None):
-    if(_random==True):
+
+def generate_hyperparameters_combination(PARAMS, _random=False, max_evals=0, path_params=None):
+    if _random:
         hyperaparams=list()
         for i in range(max_evals):
             hyperaparams.append({k: random.sample(v, 1)[0] for k, v in PARAMS.items()})
         return hyperaparams
-    if(_random==False):
+    if not _random:
         Input = PARAMS
         f = open(path_params, 'w')
         with f:

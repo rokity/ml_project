@@ -43,7 +43,7 @@ def build_model():
 
   model.compile(loss='mse',
                 optimizer=optimizer,
-                metrics=['mae', 'mse',tf.keras.metrics.RootMeanSquaredError()])
+                metrics=['mae', 'mse', tf.keras.metrics.RootMeanSquaredError()])
   return model
 
 

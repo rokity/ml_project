@@ -4,6 +4,7 @@ import pandas as pd
 from early_stopping import *
 import numpy as np
 
+
 def print_hyperparams(hyperperams):
     """
 
@@ -80,7 +81,8 @@ def random_search(
     ):
     """
 
-    @param create_model: function used to create the neural network
+    @param create_model: function used to create the neural network.
+                         It accepts as argument a dictonary composedy by pairs (hyperparameter name, range of values)
     @param tr: pair (X_train, Y_train)
     @param k_fold: number of folds for k-folds cross validation
     @param epochs: maximum number of epoch
@@ -109,7 +111,7 @@ def random_search(
     for i in range(max_evals):
         hyperaparams = {k: random.sample(v, 1)[0] for k, v in param_grid.items()}
         model = create_model(hyperaparams)
-        if(vl==None):
+        if vl is None:
             for j in range(0,k_fold):
                 vl_fold=(folds_X[j],folds_Y[j])
                 x_tr_list=folds_X[:j+1]+folds_X[j+1:]
@@ -117,15 +119,13 @@ def random_search(
                 tr_folds=(np.concatenate(x_tr_list),np.concatenate(y_tr_list))
                 thread_list.append(pool.apply_async(
                     func=run,
-                    args=(model, tr_folds, vl_fold, ts, results, verbose, tol, epochs,               hyperaparams['batch_size'], hyperaparams, monitor_value, shuffle)
+                    args=(model, tr_folds, vl_fold, ts, results, verbose, tol, epochs, hyperaparams['batch_size'], hyperaparams, monitor_value, shuffle)
                 ))
         else:
             thread_list.append(pool.apply_async(
                     func=run,
-                    args=(model, tr, vl, ts, results, verbose, tol, epochs,               hyperaparams['batch_size'], hyperaparams, monitor_value, shuffle)
+                    args=(model, tr, vl, ts, results, verbose, tol, epochs, hyperaparams['batch_size'], hyperaparams, monitor_value, shuffle)
                 ))
-
-
 
     if verbose:
         print('[+] All threads are loaded')
