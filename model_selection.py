@@ -1,6 +1,7 @@
 from utility import *
 import multiprocessing
 import random
+import math
 
 
 def print_hyperparams(hyperperams):
@@ -31,7 +32,7 @@ def write_csv(l_results, path, hyps_name, monitor_value):
         res[monitor_value].append(val)
 
     results = pd.DataFrame(res)
-    results.to_csv(path, index=False)
+    results.to_csv(path, index=False, float_format='%g')
 
 
 def run(create_model, tr, vl, ts, results, verbose, tol, epochs,

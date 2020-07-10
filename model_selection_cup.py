@@ -8,12 +8,12 @@ from model_selection import *
 DIR_CUP = './data/cup/'
 PATH_TR = 'ML-CUP19-TR.csv'
 PATH_TS = 'ML-CUP19-TS.csv'
-PATH_PARAMS = './params.csv'
-path_result_randomsearch='./out/cup/grid_search.csv'
+path_result_randomsearch='./out/cup/search.csv'
+'''
 path_result_model = './out/cup/grid_search_model.csv'
 path_plot_loss = os.getcwd()+'/out/cup/grid_search_plot_loss.png'
 path_plot_metric = os.getcwd()+'/out/cup/grid_search_plot_metric.png'
-
+'''
 
 INPUT_DIM = 20
 OUTPUT_DIM = 2
@@ -25,12 +25,12 @@ K = 4
 
 PARAM_SEARCH = {
     'eta': list([0.001, 0.0001,0.01]),
-    'alpha': list([0.7, 0.8, 0.9]),
+    #'momentum': list([0.7, 0.8, 0.9]),
     'lambda': list([0.0002,0.0004,0.0005,0.0009]),
     'add_layer': list([True, False]),
-    'hidden_nodes': list([ 20, 30, 40]),
+    'hidden_nodes': list([20, 30, 40]),
     'hidden_nodes2': list([20, 30, 40]),
-    'optimizer': list(['SGD', 'Adam', 'RMSprop']),
+    'optimizer': list(['Adam', 'RMSprop']),
     'activation_function1': list(['tanh', 'sigmoid']),
     'activation_function2': list(['tanh', 'sigmoid']),
     'init_weights': list(['XavierNormalInitialization', 'HeInitialization', 'RandomNormalInitialization']),
@@ -44,7 +44,7 @@ def create_model(hyperparams):
     _module_kernelinit = __import__('kernel_initialization')
 
     lr = hyperparams['eta']
-    mom = hyperparams['alpha']
+    #mom = hyperparams['momentum']
     l2 = hyperparams['lambda']
     beta_1 = hyperparams['beta_1']
     beta_2 = hyperparams['beta_2']
@@ -81,10 +81,16 @@ data, targets = parser.parse(INPUT_DIM, OUTPUT_DIM)
 
 X_test, Y_test, folds_X, folds_Y = train_val_test_split_k_fold(data, targets, test_size=PERC_TEST, shuffle=True, k_fold=K)
 
-model=random_search(
-    create_model=create_model, tr=(folds_X, folds_Y), k_fold=K, epochs=500, max_evals=8,
+model = random_search(
+    create_model=create_model, tr=(folds_X, folds_Y), k_fold=K, epochs=500, max_evals=50,
     batch_size=None, param_grid=PARAM_SEARCH, monitor_value='val_mee',
     vl=None, ts=(X_test, Y_test), path_results=path_result_randomsearch, verbose=True, shuffle=True
 )
 
 print(time.time() - start_time, "seconds")
+
+'''
+write_results(res, model=None, save_result=path_result_model, test=False, validation=True)
+model.plot_loss(val=True, test=True, show=False, path=path_plot_loss)
+model.plot_metric(val=True, test=True, show=False, path=path_plot_metric)
+'''
