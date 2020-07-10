@@ -103,7 +103,7 @@ def run(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperparam
         results.append((best_val, best_hyps, best_model))
         if verbose:
             print("[+] Task completed {}/{}".format(current_task,num_task))
-        current_task=current_task+1
+
         print("val : {}".format(val))
         return best_val
 
@@ -204,6 +204,7 @@ def grid_search(create_model,
     for row in param_grid:
             hyperaparams = {list(item.keys())[0]:list(item.values())[0]  for item in row }
             model = create_model(hyperaparams)
+            current_task = current_task + 1
             thread_list.append(pool.apply_async(
                         func=run,
                         args=(model, tr, vl, ts, results, verbose, tol, epochs, hyperaparams['batch_size'], hyperaparams, monitor_value, shuffle,k_fold,current_task,num_task)
