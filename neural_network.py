@@ -56,7 +56,6 @@ class NeuralNetwork:
         self.n_layers += 1
         self.layers.append(layer)
 
-
     def predict(self, X: np.ndarray):
         """
 
@@ -66,7 +65,7 @@ class NeuralNetwork:
         out = np.zeros((X.shape[0], self.layers[-1].dim_out))
         n_samples = X.shape[0]
         for i in range(n_samples):
-            x = X[i]
+            x = X[i].reshape((1, X.shape[1]))
             out[i] = self.__feedforward(x)
         return out
 
