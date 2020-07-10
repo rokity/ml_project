@@ -33,7 +33,7 @@ PARAM_SEARCH = {
     'optimizer': list(['SGD', 'Adam', 'RMSprop']),
     'activation_function1': list(['tanh', 'sigmoid']),
     'activation_function2': list(['tanh', 'sigmoid']),
-    'init_weights': list(['XavierNormalInitialization',  'RandomNormalInitialization']),
+    'init_weights': list(['XavierNormalInitialization','HeInitialization',  'RandomNormalInitialization']),
     'batch_size': list([8, 16, 32, 64]),
     'beta_1': list([0.9, 0.99, 0.999]),
     'beta_2': list([0.9, 0.99, 0.999]),
