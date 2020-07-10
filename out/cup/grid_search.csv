@@ -1,2 +1,3 @@
 eta,alpha,lambda,add_layer,hidden_nodes,hidden_nodes2,optimizer,activation_function1,activation_function2,init_weights,batch_size,beta_1,beta_2,val_mee
-0.001,0.7,0.0002,True,20,20,SGD,tanh,tanh,XavierNormalInitialization,8,0.9,0.9,1.049112989667961
+0.001,0.8,0.0005,False,20,20,SGD,sigmoid,tanh,XavierNormalInitialization,8,0.9,0.99,1.8043636245683958
+0.001,0.8,0.0009,True,30,30,RMSprop,tanh,tanh,XavierNormalInitialization,64,0.9,0.99,1.923079836095236
