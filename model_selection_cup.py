@@ -27,7 +27,8 @@ PERC_TEST = 0.25
 PERC_VAL= 0.25
 LOSS = 'mse'
 METRIC = 'mee'
-K = 5
+K = 2
+
 
 
 
@@ -67,7 +68,8 @@ def write_csv(l_results, path, hyps_name, monitor_value):
     results.to_csv(path, index=False)
 
 
-def run(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperparams, monitor_value, shuffle,k_folds=None):
+def run(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperparams, monitor_value, shuffle,k_folds=None,
+        current_task =None,num_task=None):
     if verbose:
         print("[+] Start one task")
 
@@ -99,6 +101,10 @@ def run(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperparam
         folds_result.sort(key=lambda x: x[0])
         best_val, best_hyps, best_model = folds_result[0]
         results.append((best_val, best_hyps, best_model))
+        if verbose:
+            print("[+] Task completed {}/{}".format(current_task,num_task))
+        current_task=current_task+1
+        print("val : {}".format(val))
         return best_val
 
 
@@ -193,13 +199,14 @@ def grid_search(create_model,
     pool = multiprocessing.Pool(processes=n_threads)
     results = multiprocessing.Manager().list()
     thread_list = list()
-
+    num_task=len(param_grid)
+    current_task = 0
     for row in param_grid:
             hyperaparams = {list(item.keys())[0]:list(item.values())[0]  for item in row }
             model = create_model(hyperaparams)
             thread_list.append(pool.apply_async(
                         func=run,
-                        args=(model, tr, vl, ts, results, verbose, tol, epochs, hyperaparams['batch_size'], hyperaparams, monitor_value, shuffle,k_fold)
+                        args=(model, tr, vl, ts, results, verbose, tol, epochs, hyperaparams['batch_size'], hyperaparams, monitor_value, shuffle,k_fold,current_task,num_task)
                     ))
 
     if verbose:
@@ -275,7 +282,7 @@ X_test,Y_test,folds_X,folds_Y=train_val_test_split_k_fold(data,targets,test_size
 
 PARAM_GRID = [[{key: value} for (key, value) in zip(PARAM_SEARCH, values)]
                       for values in itertools.product(*PARAM_SEARCH.values())]
-PARAM_GRID=PARAM_GRID[:1]
+PARAM_GRID=PARAM_GRID[:5]
 model=grid_search(
     create_model=create_model, tr=(folds_X, folds_Y), k_fold=K, epochs=500,
     batch_size=None, param_grid=PARAM_GRID, monitor_value='val_mee',
