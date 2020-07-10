@@ -160,6 +160,10 @@ def generate_hyperparameters_combination(PARAMS, _random=False, max_evals=0, pat
         f = open(path_params, 'w')
         with f:
             writer = csv.writer(f)
+            Output = [writer.writerow([{key: value} for (key, value) in zip(Input, values)])
+                      for values in itertools.product(*Input.values())]
+
+
 
 
 

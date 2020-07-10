@@ -13,8 +13,7 @@ PATH_TS = 'ML-CUP19-TS.csv'
 INPUT_DIM = 20
 OUTPUT_DIM = 2
 path_result_randomsearch='./out/cup/randomsearch.csv'
-path_result_model='./out/cup/random_search_model'
-
+path_result_model='./out/cup/random_search_model.csv'
 
 PERC_VL = 0.25
 PERC_TS = 0.25
