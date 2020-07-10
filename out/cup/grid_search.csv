@@ -1,3 +1,9 @@
 eta,alpha,lambda,add_layer,hidden_nodes,hidden_nodes2,optimizer,activation_function1,activation_function2,init_weights,batch_size,beta_1,beta_2,val_mee
-0.001,0.8,0.0005,False,20,20,SGD,sigmoid,tanh,XavierNormalInitialization,8,0.9,0.99,1.8043636245683958
-0.001,0.8,0.0009,True,30,30,RMSprop,tanh,tanh,XavierNormalInitialization,64,0.9,0.99,1.923079836095236
+0.0001,0.8,0.0005,True,30,30,Adam,tanh,sigmoid,XavierNormalInitialization,64,0.99,0.99,1.0502018391272974
+0.0001,0.7,0.0002,True,30,40,RMSprop,tanh,sigmoid,HeInitialization,32,0.99,0.999,1.0530222215588572
+0.001,0.9,0.0002,False,40,30,Adam,sigmoid,tanh,HeInitialization,64,0.9,0.99,1.1817719365767485
+0.01,0.8,0.0009,False,40,40,SGD,sigmoid,tanh,RandomNormalInitialization,64,0.999,0.9,1.2433441699682373
+0.0001,0.7,0.0005,False,30,40,SGD,tanh,sigmoid,HeInitialization,8,0.99,0.99,1.9504073879858517
+0.0001,0.9,0.0002,True,20,40,Adam,sigmoid,sigmoid,HeInitialization,16,0.9,0.999,3.45748916076587
+0.0001,0.7,0.0009,True,30,30,SGD,tanh,sigmoid,RandomNormalInitialization,16,0.9,0.99,4.706721689463742
+0.0001,0.9,0.0004,True,30,30,Adam,tanh,sigmoid,XavierNormalInitialization,8,0.999,0.9,3033027924.9877143

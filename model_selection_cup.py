@@ -88,7 +88,3 @@ model=random_search(
 )
 
 print(time.time() - start_time, "seconds")
-
-write_results(res, model=None, save_result=path_result_model, test=False, validation=True)
-model.plot_loss(val=True, test=True, show=False, path=path_plot_loss)
-model.plot_metric(val=True, test=True, show=False, path=path_plot_metric)
