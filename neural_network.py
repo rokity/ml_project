@@ -66,7 +66,7 @@ class NeuralNetwork:
         n_samples = X.shape[0]
         for i in range(n_samples):
             x = X[i].reshape((1, X.shape[1]))
-            out[i] = self.__feedforward(x)
+            out[i] = self.__feedforward(x).reshape(1, self.layers[-1].dim_out)
         return out
 
     def evaluate(self, X: np.ndarray, Y: np.ndarray):

@@ -97,8 +97,6 @@ class Cup_parser:
             data = np.zeros((len(lines)-7, dim_features + dim_out))
             i = 0
             for line in lines[7:]:
-                if i > (1770):
-                    x = 2
                 line = line.strip().split(',')
                 data[i] = line[1:]
                 i += 1

@@ -18,25 +18,20 @@ set_style_plot()
 
 parser = Cup_parser(DIR_CUP + PATH_TR)
 data, targets = parser.parse(INPUT_DIM, OUTPUT_DIM)
-X_train, Y_train, X_val, Y_val, X_test, Y_test = train_val_test_split(data, targets, val_size=PERC_VL, test_size=PERC_TS, shuffle=True)
+parser_ts = Cup_parser(DIR_CUP + PATH_TS)
+data_ts, _ = parser_ts.parse(INPUT_DIM, 0)
 
+X_train, Y_train = data, targets
+X_test = data_ts
 model = NeuralNetwork('mse', 'mee')
 
-model.add_layer(10, input_dim=X_train.shape[1], activation='sigmoid', kernel_initialization=HeInitialization())
-model.add_layer(Y_train.shape[1], activation='linear', kernel_initialization=HeInitialization())
+model.add_layer(30, input_dim=X_train.shape[1], activation='tanh', kernel_initialization=XavierNormalInitialization())
+model.add_layer(30, activation='tanh', kernel_initialization=XavierNormalInitialization())
+model.add_layer(Y_train.shape[1], activation='linear', kernel_initialization=XavierNormalInitialization())
 
-
-lr = 0.01
-decay_lr_par = {
-    "epoch_tau": 200,
-    "epsilon_tau_perc": 0.01,
-    "init_lr": lr
-}
-
-model.compile(optimizer=SGD(lr=lr, mom=0.8, decay_lr=decay_lr_par, l2=0.00005))
+model.compile(optimizer=RMSprop(lr=0.0001, moving_average=0.9, l2=0.0005))
 
 model.fit(
-    X_train, Y_train, 500, batch_size=16, vl=(X_val, Y_val), ts=(X_test, Y_test),
-    shuffle=True, tol=1e-2, verbose=True)
-model.plot_loss(val=True, test=True)
-model.plot_metric(val=True, test=True)
+    X_train, Y_train, 500, batch_size=64, shuffle=True, tol=1e-2, verbose=True)
+
+#print(model.predict(X_test))

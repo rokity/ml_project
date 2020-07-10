@@ -14,6 +14,18 @@ def write_results(
         test=False,
         show=False
     ):
+    """
+
+    @param res: results to write
+    @param model: NeuralNetwork instance
+    @param save_plot_loss: path where save loss
+    @param save_plot_metric: path where save metric
+    @param save_result: path where save numerical result
+    @param validation: True if you want to save validation results
+    @param test: True if you want to save test results
+    @param show: True if you want to show plots
+
+    """
 
     if save_plot_loss is not None:
         model.plot_loss(val=validation, test=test, show=show, path=save_plot_loss)

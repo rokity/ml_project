@@ -24,19 +24,22 @@ K = 4
 
 
 PARAM_SEARCH = {
-    'eta': list([0.001, 0.0001,0.01]),
-    #'momentum': list([0.7, 0.8, 0.9]),
-    'lambda': list([0.0002,0.0004,0.0005,0.0009]),
+    'eta': list([0.001, 0.0001, 0.01]),
+    'momentum': list([0.7, 0.8, 0.9]),
+    'lr_linear_decay': list([True, False]),
+    'epoch_tau': list([200, 300, 350]),
+    'epsilon_tau_perc': list([0.01, 0.02, 0.05]),
+    'lambda': list([0.0002, 0.0004, 0.0005, 0.0009]),
     'add_layer': list([True, False]),
     'hidden_nodes': list([20, 30, 40]),
     'hidden_nodes2': list([20, 30, 40]),
-    'optimizer': list(['Adam', 'RMSprop']),
+    'optimizer': list(['SGD']),
     'activation_function1': list(['tanh', 'sigmoid']),
     'activation_function2': list(['tanh', 'sigmoid']),
     'init_weights': list(['XavierNormalInitialization','HeInitialization',  'RandomNormalInitialization']),
     'batch_size': list([8, 16, 32, 64]),
-    'beta_1': list([0.9, 0.99, 0.999]),
-    'beta_2': list([0.9, 0.99, 0.999]),
+    #'beta_1': list([0.9, 0.99, 0.999]),
+    #'beta_2': list([0.9, 0.99, 0.999]),
 }
 
 
@@ -44,10 +47,10 @@ def create_model(hyperparams):
     _module_kernelinit = __import__('kernel_initialization')
 
     lr = hyperparams['eta']
-    #mom = hyperparams['momentum']
+    mom = hyperparams['momentum']
     l2 = hyperparams['lambda']
-    beta_1 = hyperparams['beta_1']
-    beta_2 = hyperparams['beta_2']
+    #beta_1 = hyperparams['beta_1']
+    #beta_2 = hyperparams['beta_2']
     act_fun_1 = hyperparams['activation_function1']
     hidden_nodes1 = hyperparams['hidden_nodes']
     kernel_init = getattr(_module_kernelinit, hyperparams['init_weights'])
@@ -61,7 +64,15 @@ def create_model(hyperparams):
         model.add_layer(hidden_nodes2, activation=act_fun_2, kernel_initialization=kernel_init())
     model.add_layer(OUTPUT_DIM, activation='linear', kernel_initialization=kernel_init())
     if optimizer_str == "SGD":
-        optimizer = SGD(lr=lr, mom=mom, l2=l2)
+        if hyperparams['lr_linear_decay']:
+            decay_lr_par = {
+                "epoch_tau": hyperparams['epoch_tau'],
+                "epsilon_tau_perc": hyperparams['epsilon_tau_perc'],
+                "init_lr": lr
+            }
+            optimizer = SGD(lr=lr, mom=mom, l2=l2, decay_lr=decay_lr_par)
+        else:
+            optimizer = SGD(lr=lr, mom=mom, l2=l2)
     elif optimizer_str == "RMSprop":
         optimizer = RMSprop(lr=lr, moving_average=beta_1, l2=l2)
     elif optimizer_str == "Adam":
@@ -81,14 +92,10 @@ data, targets = parser.parse(INPUT_DIM, OUTPUT_DIM)
 
 X_test, Y_test, folds_X, folds_Y = train_val_test_split_k_fold(data, targets, test_size=PERC_TEST, shuffle=True, k_fold=K)
 
-<<<<<<< HEAD
 model = random_search(
-=======
-model=random_search(
->>>>>>> 59f162b2eec9a044e93427d6b43a23c80734f3d0
     create_model=create_model, tr=(folds_X, folds_Y), k_fold=K, epochs=500, max_evals=50,
     batch_size=None, param_grid=PARAM_SEARCH, monitor_value='val_mee',
-    vl=None, ts=(X_test, Y_test), path_results=path_result_randomsearch,n_threads=50, verbose=True, shuffle=True
+    vl=None, ts=(X_test, Y_test), path_results=path_result_randomsearch, verbose=True, shuffle=True
 )
 
 print(time.time() - start_time, "seconds")
