@@ -33,7 +33,7 @@ PARAM_SEARCH = {
     'optimizer': list(['Adam', 'RMSprop']),
     'activation_function1': list(['tanh', 'sigmoid']),
     'activation_function2': list(['tanh', 'sigmoid']),
-    'init_weights': list(['XavierNormalInitialization', 'HeInitialization', 'RandomNormalInitialization']),
+    'init_weights': list(['XavierNormalInitialization','HeInitialization',  'RandomNormalInitialization']),
     'batch_size': list([8, 16, 32, 64]),
     'beta_1': list([0.9, 0.99, 0.999]),
     'beta_2': list([0.9, 0.99, 0.999]),
@@ -81,10 +81,14 @@ data, targets = parser.parse(INPUT_DIM, OUTPUT_DIM)
 
 X_test, Y_test, folds_X, folds_Y = train_val_test_split_k_fold(data, targets, test_size=PERC_TEST, shuffle=True, k_fold=K)
 
+<<<<<<< HEAD
 model = random_search(
+=======
+model=random_search(
+>>>>>>> 59f162b2eec9a044e93427d6b43a23c80734f3d0
     create_model=create_model, tr=(folds_X, folds_Y), k_fold=K, epochs=500, max_evals=50,
     batch_size=None, param_grid=PARAM_SEARCH, monitor_value='val_mee',
-    vl=None, ts=(X_test, Y_test), path_results=path_result_randomsearch, verbose=True, shuffle=True
+    vl=None, ts=(X_test, Y_test), path_results=path_result_randomsearch,n_threads=50, verbose=True, shuffle=True
 )
 
 print(time.time() - start_time, "seconds")
