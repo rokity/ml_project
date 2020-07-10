@@ -8,7 +8,6 @@ import multiprocessing
 import random
 import time
 import os
-import ast
 import itertools
 
 
@@ -96,6 +95,7 @@ def run(model, tr, vl, ts, results, verbose, tol, epochs, batch_size, hyperparam
                       batch_size=batch_size, vl=vl_fold, ts=ts, verbose=False, tol=tol, shuffle=shuffle)
             val = model.history[monitor_value][-1]
             folds_result.append((val, hyperparams, model))
+
         folds_result.sort(key=lambda x: x[0])
         best_val, best_hyps, best_model = folds_result[0]
         results.append((best_val, best_hyps, best_model))
@@ -216,7 +216,7 @@ def grid_search(create_model,
             print("{}: {}".format(monitor_value, val))
 
     if path_results is not None:
-        write_csv(l_results, path_results, param_grid.keys(), monitor_value)
+        write_csv(l_results, path_results, PARAM_SEARCH.keys(), monitor_value)
 
     _, best_hyps, best_model = l_results[0]
 
@@ -275,7 +275,7 @@ X_test,Y_test,folds_X,folds_Y=train_val_test_split_k_fold(data,targets,test_size
 
 PARAM_GRID = [[{key: value} for (key, value) in zip(PARAM_SEARCH, values)]
                       for values in itertools.product(*PARAM_SEARCH.values())]
-
+PARAM_GRID=PARAM_GRID[:1]
 model=grid_search(
     create_model=create_model, tr=(folds_X, folds_Y), k_fold=K, epochs=500,
     batch_size=None, param_grid=PARAM_GRID, monitor_value='val_mee',
